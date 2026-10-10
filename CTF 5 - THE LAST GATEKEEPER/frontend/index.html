@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>CTF 5 — THE LAST GATEKEEPER: SPLIT SEAL // THE LAST DATASET</title>
+<link rel="stylesheet" href="/css/main.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body data-screen="map">
+<div class="fx-scanlines" aria-hidden="true"></div>
+<div class="fx-vignette" aria-hidden="true"></div>
+<div class="fx-ash" id="ash" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-tda">TDA</span><span class="brand-sep">//</span><span>THE LAST DATASET</span><span class="brand-event">COGNITIA&nbsp;&rsquo;26</span></div>
+  <nav class="crumb" id="crumb" aria-label="location">
+    <span class="crumb-zone">RED ZONE</span><span class="crumb-sep">▸</span><span id="crumb-leaf">WORLD MAP</span>
+  </nav>
+  <div class="top-status">
+    <span class="pill" id="svc-pill" data-state="unknown"><i class="dot"></i><span id="svc-text">PROBING…</span></span>
+  </div>
+</header>
+
+<!-- ============================================================ WORLD MAP -->
+<main>
+<section class="screen" id="screen-map" aria-label="world map">
+  <div class="map-head">
+    <h1 class="glitch" data-text="THE LAST DATASET">THE LAST DATASET</h1>
+    <p class="map-sub">WORLD MAP · SURVIVING ZONES AFTER PRALAYA, THE INFORMATION COLLAPSE</p>
+  </div>
+
+  <div class="map-grid" role="list">
+    <a class="zone-card" role="listitem" data-ctf="1" href="http://localhost:8080/" target="_blank" rel="noopener">
+      <span class="zc-id">CTF 1</span>
+      <span class="zc-name">GHOST SIGNAL</span>
+      <span class="zc-meta">PRALAYA CORRIDOR · PORT 8080</span>
+      <span class="zc-state">ARCHIVE ONLINE ↗</span>
+    </a>
+    <a class="zone-card" role="listitem" data-ctf="2" href="http://localhost:8081/" target="_blank" rel="noopener">
+      <span class="zc-id">CTF 2</span>
+      <span class="zc-name">THE SILENT EDIT</span>
+      <span class="zc-meta">SANCTUARY ARCHIVE · PORT 8081</span>
+      <span class="zc-state">ARCHIVE ONLINE ↗</span>
+    </a>
+    <a class="zone-card" role="listitem" data-ctf="3" href="http://localhost:8082/" target="_blank" rel="noopener">
+      <span class="zc-id">CTF 3</span>
+      <span class="zc-name">CHILD DATASET</span>
+      <span class="zc-meta">NODE 07 · PORT 8082</span>
+      <span class="zc-state">ARCHIVE ONLINE ↗</span>
+    </a>
+    <a class="zone-card zone-card-bonus" role="listitem" data-ctf="4" href="http://localhost:8090/" target="_blank" rel="noopener">
+      <span class="zc-id">CTF 4 · BONUS</span>
+      <span class="zc-name">THE SLEEPER</span>
+      <span class="zc-meta">CENTRAL ATRIUM · OPTIONAL · PORT 8090</span>
+      <span class="zc-state">OPTIONAL — NOT REQUIRED ↗</span>
+    </a>
+    <button class="zone-card zone-card-hot" role="listitem" data-ctf="5" id="card-ctf5" type="button">
+      <span class="zc-id">CTF 5 · RED-ZONE-04</span>
+      <span class="zc-name">THE LAST GATEKEEPER</span>
+      <span class="zc-meta">SPLIT SEAL · FINAL SURVIVING GATE</span>
+      <span class="zc-state" id="zc-ctf5-state">SCANNING…</span>
+      <span class="zc-cta" id="zc-ctf5-cta">ENTER RED ZONE →</span>
+    </button>
+  </div>
+
+  <div class="map-legend">
+    <p><b>PRALAYA</b> erased the records. Four fragments remain. CTF&nbsp;4 — THE SLEEPER is a separate optional bonus and never gates CTF&nbsp;5.</p>
+    <p class="map-hint">CTF&nbsp;1–4 open as their own independent deployments. CTF&nbsp;5 lives right here.</p>
+  </div>
+</section>
+
+<!-- ========================================================== APPROACH CIN -->
+<section class="screen screen-cin" id="screen-approach" aria-label="approach" hidden>
+  <div class="cin" id="cin">
+    <div class="cin-static" aria-hidden="true"></div>
+    <div class="cin-gate" aria-hidden="true">
+      <span class="gate-bar"></span><span class="gate-bar"></span><span class="gate-bar"></span>
+      <span class="gate-light"></span>
+    </div>
+    <div class="cin-lines">
+      <p class="cin-tiny" data-cin="0">PRALAYA // SIGNAL ACQUIRED — DEEP RED ZONE</p>
+      <h1 class="cin-title glitch" data-cin="1" data-text="RED-ZONE-04">RED-ZONE-04</h1>
+      <p class="cin-sub" data-cin="2">THE LAST GATEKEEPER</p>
+      <div class="cin-status" data-cin="3">
+        <div class="cin-row"><span>ARCHIVE FRAGMENT</span><b class="bad">SEALED</b></div>
+        <div class="cin-row"><span>IDENTITY CHECK</span><b>RETIRED</b></div>
+        <div class="cin-row"><span>WITNESS</span><b class="warn">REQUIRED</b></div>
+        <div class="cin-row"><span>CONTINUATION ROUTE</span><b class="warn">UNDISCLOSED</b></div>
+      </div>
+      <p class="cin-lore" data-cin="4">The archive is still alive.<br>The gatekeeper is still watching.<br>The seal is split.</p>
+    </div>
+    <div class="cin-actions" data-cin="4">
+      <button class="btn btn-danger" id="cin-breach" type="button">BREACH →</button>
+      <span class="cin-note">a live process still guards the fragment — bring a witness</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================== CHALLENGE UI -->
+<section class="screen" id="screen-challenge" aria-label="challenge" hidden>
+  <div class="chal-grid">
+
+    <!-- ---------- briefing ---------- -->
+    <aside class="pane pane-brief">
+      <div class="pane-head">
+        <span class="tag">CTF 5</span>
+        <h2>THE LAST GATEKEEPER <em>SPLIT SEAL</em></h2>
+        <p class="meta-row"><span>BINARY EXPLOITATION / RE</span><span>HARD</span><span>600 PTS</span></p>
+      </div>
+
+      <blockquote class="lore">
+        <b>PRALAYA // RED-ZONE-04</b>
+        The old gatekeeper did not keep the final fragment in one place. The live
+        process now demands a witness, then hides the continuation route behind a
+        second integrity check.
+      </blockquote>
+
+      <section class="brief-sec">
+        <h3>OBJECTIVE</h3>
+        <p>Connect to the service, recover the final archive fragment, and submit <code>RZ{…}</code>.</p>
+      </section>
+
+      <section class="brief-sec">
+        <h3>CONNECTION</h3>
+        <p class="conn-line"><code id="nc-cmd">nc HOST 31337</code>
+          <button class="btn btn-mini" id="copy-nc" type="button" title="copy command">COPY</button></p>
+        <p class="conn-alt">…or use the live terminal on the right — it is a direct pipe to the real service.</p>
+        <div class="conn-state" id="conn-state">PROBING SERVICE…</div>
+      </section>
+
+      <section class="brief-sec">
+        <h3>PLAYER FILES</h3>
+        <ul class="file-list">
+          <li><code>gatekeeper</code> — supplied ELF</li>
+          <li><code>server.py</code> — TCP wrapper</li>
+          <li><code>docker-compose.yml</code> — deployment</li>
+        </ul>
+      </section>
+
+      <section class="brief-sec">
+        <h3>RULES</h3>
+        <p>The challenge is self-contained. No host, Docker daemon, or other-team access is required. Brute force is unnecessary.</p>
+      </section>
+
+      <section class="brief-sec">
+        <h3>RECOMMENDED TOOLS</h3>
+        <p class="tools"><code>file</code> <code>checksec</code> <code>strings</code> <code>readelf</code> <code>objdump</code> <code>gdb</code> <code>python</code> (+ optionally pwntools)</p>
+      </section>
+
+      <section class="brief-sec hints">
+        <h3>HINTS <span class="hint-note">unlock at your own discretion</span></h3>
+        <details><summary>HINT 1 — 75 PTS</summary><p>The first prompt is not just an identity field. Ask whether your bytes are being parsed as a format string.</p></details>
+        <details><summary>HINT 2 — 125 PTS</summary><p>The attestation fragment is the output of ordinary instructions in the binary. Reproduce that calculation; do not guess the witness.</p></details>
+        <details><summary>HINT 3 — 175 PTS</summary><p>There are two disclosure surfaces, not one. After the witness step, the continuity note is worth another careful <code>%p</code> probe.</p></details>
+        <details><summary>HINT 4 — 225 PTS</summary><p>The useful continuation value is not printed in plain form. It is combined with session state before being left on the stack.</p></details>
+        <details><summary>HINT 5 — 275 PTS</summary><p>The memo cursor moves. Derive its position, preserve the live canary, and remember that the first two qwords at the cursor are part of the integrity check.</p></details>
+      </section>
+    </aside>
+
+    <!-- ---------- terminal + flag ---------- -->
+    <div class="pane pane-live">
+      <div class="term" id="term">
+        <div class="term-head">
+          <span class="term-title">SPLIT SEAL // LIVE SESSION</span>
+          <span class="pill" id="term-pill" data-state="unknown"><i class="dot"></i><span id="term-text">IDLE</span></span>
+          <button class="btn btn-mini" id="term-reconnect" type="button">RECONNECT</button>
+        </div>
+        <pre class="term-out" id="term-out" tabindex="0" aria-label="challenge output"></pre>
+        <div class="term-inputrow">
+          <span class="term-prompt" aria-hidden="true">guest@red-zone-04:~$</span>
+          <textarea id="term-in" class="term-in" rows="1" spellcheck="false" autocomplete="off"
+                    placeholder="type a line — Enter transmits  ·  /b64 <data> sends raw bytes"></textarea>
+          <button class="btn btn-mini" id="term-send" type="button">SEND</button>
+        </div>
+        <p class="term-foot">Direct pipe to the real challenge process. Do not close this page mid-session.</p>
+      </div>
+
+      <div class="flagbox" id="flagbox">
+        <h3>SUBMIT ARCHIVE FRAGMENT</h3>
+        <form id="flag-form" autocomplete="off">
+          <input id="flag-input" type="text" placeholder="RZ{…}" maxlength="80" spellcheck="false" aria-label="flag">
+          <button class="btn btn-danger" type="submit" id="flag-submit">VERIFY</button>
+        </form>
+        <p class="flag-msg" id="flag-msg" role="status" aria-live="polite"></p>
+        <div class="bypass" id="bypass" hidden>
+          <p class="bypass-line">GATEKEEPER BYPASSED</p>
+          <button class="btn btn-ok" id="open-recovery" type="button">OPEN THE ARCHIVE →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ RECOVERY -->
+<section class="screen screen-rec" id="screen-recovery" aria-label="recovery" hidden>
+  <div class="rec" id="rec">
+    <p class="rec-step" id="rec-1">GATEKEEPER BYPASSED</p>
+    <div class="rec-bar" id="rec-bar" aria-hidden="true"><i></i></div>
+    <p class="rec-step rec-step-2" id="rec-2" hidden>ARCHIVE FRAGMENT RECOVERED</p>
+    <div class="rec-frag" id="rec-frag" hidden>
+      <div class="frag-slam"><span>FRAGMENT 04</span></div>
+      <p class="rec-lore">RED-ZONE-04 records restored. The last gate is open.<br>
+        The archive remembers what PRALAYA tried to erase.</p>
+      <button class="btn btn-danger" id="rec-return" type="button">RETURN TO WORLD MAP</button>
+    </div>
+    <p class="rec-blocked" id="rec-blocked" hidden>NO VERIFIED FRAGMENT — the gate is still sealed.</p>
+    <button class="btn btn-ghost" id="rec-back" type="button" hidden>← BACK</button>
+  </div>
+</section>
+</main>
+
+<footer class="footbar">
+  <span>TDA — THE DATA ALCHEMISTS</span>
+  <span class="foot-sep">·</span>
+  <span>RED ZONE RELAY — DO NOT TRUST MIRRORED RECORDS</span>
+</footer>
+
+<script src="/js/terminal.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+services:
+  gatekeeper:
+    build: .
+    ports:
+      - "31337:31337"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true

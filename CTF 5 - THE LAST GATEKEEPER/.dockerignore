@@ -1,0 +1,12 @@
+# Never ship tests, private verification harnesses, caches or the local
+# Windows runtime inside the image.
+test/
+scripts/
+server/data/
+challenge/runtime/
+challenge/Dockerfile
+challenge/docker-compose.yml
+README.md
+.env
+.env.example
+*.log

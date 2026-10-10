@@ -1,0 +1,36 @@
+# CTF 5 — THE LAST GATEKEEPER: SPLIT SEAL
+# Integrated deployment: web UI + API + WebSocket bridge (8083)
+# and the raw challenge listener for `nc HOST 31337` (31337).
+#
+#   docker compose up --build
+#
+# The expected flag stays server-side. To rotate it without rebuilding,
+# create a .env file next to this compose file (never commit it):
+#   SPLIT_SEAL_FLAG=RZ{...}
+services:
+  ctf5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ctf5-last-gatekeeper:latest
+    container_name: ctf5-last-gatekeeper
+    ports:
+      - "8083:8083"     # world map + intro + live terminal + flag API
+      - "31337:31337"   # raw TCP: nc HOST 31337
+    environment:
+      PORT: "8083"
+      TCP_PORT: "31337"
+      SPLIT_SEAL_FLAG: "${SPLIT_SEAL_FLAG:-}"
+    volumes:
+      - ctf5-data:/app/server/data   # durable completion state
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  ctf5-data:

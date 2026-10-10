@@ -1,0 +1,18 @@
+{
+  "name": "ctf5-the-last-gatekeeper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CTF 5 — THE LAST GATEKEEPER: SPLIT SEAL — integration server, cinematic frontend and live challenge bridge for THE LAST DATASET (TDA · Cognitia '26).",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node test/run.js",
+    "runtime:fetch": "node scripts/fetch-runtime.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

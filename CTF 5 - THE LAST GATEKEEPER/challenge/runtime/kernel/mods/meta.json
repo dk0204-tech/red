@@ -1,0 +1,8 @@
+{
+  "ver": "6.12.112-0-virt",
+  "files": [
+    "lib/modules/6.12.112-0-virt/kernel/net/core/failover.ko",
+    "lib/modules/6.12.112-0-virt/kernel/drivers/net/net_failover.ko",
+    "lib/modules/6.12.112-0-virt/kernel/drivers/net/virtio_net.ko"
+  ]
+}
