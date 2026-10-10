@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>MANU CONTROL // ORGANIZER DASHBOARD</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@700;800&family=Orbitron:wght@600;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./admin.css">
+</head>
+
+<body>
+    <!-- ======================= LOGIN GATE ======================= -->
+    <section id="login-gate" class="login-gate" aria-label="Organizer sign in">
+        <div class="login-card">
+            <div class="login-emblem" aria-hidden="true">☣</div>
+            <p class="login-kicker">MANU PROTOCOL</p>
+            <h1>ORGANIZER ACCESS</h1>
+            <p class="login-sub">SANCTUARY CONTROL // RESTRICTED TERMINAL</p>
+            <form id="login-form" autocomplete="on">
+                <label for="login-ident">Callsign or email</label>
+                <input id="login-ident" name="username" type="text" autocomplete="username" required
+                    placeholder="admin@sanctuary.local">
+                <label for="login-pass">Passphrase</label>
+                <input id="login-pass" name="password" type="password" autocomplete="current-password" required
+                    placeholder="••••••••">
+                <div id="login-error" class="login-error" role="alert" aria-live="assertive"></div>
+                <button type="submit" class="btn btn-primary" id="login-btn">AUTHENTICATE</button>
+            </form>
+            <a class="login-back" href="/">← RETURN TO SANCTUARY ZERO</a>
+        </div>
+    </section>
+
+    <!-- ======================= APP SHELL ======================= -->
+    <div id="app" class="app" hidden>
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">☣</span>
+                <div>
+                    <strong>MANU CONTROL</strong>
+                    <span class="brand-sub">THE LAST DATASET // ORGANIZER DASHBOARD</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <span id="topbar-event" class="event-chip" aria-live="off">EVENT …</span>
+                <span id="topbar-user" class="user-chip"></span>
+                <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">OPEN GAME ↗</a>
+                <button class="btn btn-ghost" id="logout-btn">SIGN OUT</button>
+            </div>
+        </header>
+
+        <nav class="sidebar" aria-label="Dashboard sections">
+            <a href="#/overview" data-route="overview">◈ OVERVIEW</a>
+            <a href="#/ctfs" data-route="ctfs">▤ CTF MANAGEMENT</a>
+            <a href="#/teams" data-route="teams">◉ TEAMS</a>
+            <a href="#/submissions" data-route="submissions">✓ SUBMISSIONS</a>
+            <a href="#/leaderboard" data-route="leaderboard"># LEADERBOARD</a>
+            <a href="#/event" data-route="event">◷ EVENT</a>
+            <a href="#/audit" data-route="audit">≡ AUDIT LOG</a>
+        </nav>
+
+        <main class="content" id="content" tabindex="-1">
+            <!-- pages render here -->
+        </main>
+    </div>
+
+    <!-- ======================= EDIT MODAL ======================= -->
+    <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h2 id="modal-title">EDIT CTF</h2>
+                <button class="modal-close" id="modal-close" aria-label="Close dialog">×</button>
+            </div>
+            <form id="ctf-form" class="ctf-form">
+                <div class="form-grid">
+                    <label>Slug <input name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                            placeholder="pralaya-archive"></label>
+                    <label>Name <input name="name" required maxlength="80" placeholder="PRALAYA Archive Terminal"></label>
+                    <label>Sector
+                        <select name="sector">
+                            <option value="community">COMMUNITY</option>
+                            <option value="radio">RADIO</option>
+                            <option value="forensics">FORENSICS</option>
+                            <option value="research">RESEARCH</option>
+                        </select>
+                    </label>
+                    <label>Zone id <input name="zone" placeholder="zone_vault"></label>
+                    <label>Points <input name="points" type="number" min="0" max="100000" value="300"></label>
+                    <label>Difficulty
+                        <select name="difficulty">
+                            <option>EASY</option>
+                            <option selected>MEDIUM</option>
+                            <option>HARD</option>
+                        </select>
+                    </label>
+                    <label>Order <input name="displayOrder" type="number" min="1" max="999" value="1"></label>
+                    <label>Fragment id <input name="fragmentId" placeholder="FRAGMENT-01"></label>
+                </div>
+                <label>External URL <small>https:// only</small>
+                    <input name="externalUrl" type="url" required placeholder="https://ctf.example.com/challenge">
+                </label>
+                <label>Terminal label <input name="terminalLabel" maxlength="80" placeholder="ACCESS PRALAYA ARCHIVE"></label>
+                <label>Description <textarea name="description" rows="3" maxlength="1000"></textarea></label>
+                <label class="switch-label">
+                    <input name="enabled" type="checkbox" checked>
+                    <span>Enabled — visible to players</span>
+                </label>
+                <div id="form-error" class="login-error" role="alert"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" id="form-cancel">CANCEL</button>
+                    <button type="submit" class="btn btn-primary" id="form-save">SAVE CTF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="./admin.js"></script>
+</body>
+
+</html>

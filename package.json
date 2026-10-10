@@ -1,0 +1,35 @@
+{
+  "name": "the-last-dataset",
+  "version": "1.0.0",
+  "description": "THE LAST DATASET — Sanctuary Zero: immersive Three.js CTF event platform with a production REST backend (Express + PostgreSQL).",
+  "private": true,
+  "main": "server/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "migrate": "node server/db/migrate.js",
+    "seed": "node server/db/seed.js",
+    "ctf1": "node red-zone-ctf1/red-zone-ctf1/src/server.js",
+    "ctf2": "node \"Red Zone CTF 2/backend/server.js\"",
+    "ctf3": "node \"Red Zone CTF 3/backend/server.js\"",
+    "ctf4": "node \"Bonus CTF/server/server.js\"",
+    "ctf5": "node \"CTF 5 - THE LAST GATEKEEPER/server/server.js\"",
+    "test": "node --test \"server/tests/*.test.js\"",
+    "build:admin": "node -e \"console.log('admin dashboard is static — nothing to build')\""
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1"
+  }
+}

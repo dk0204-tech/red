@@ -1,0 +1,29 @@
+# secrets & local env
+.env
+.env.local
+*.env.local
+
+# dependencies / build
+node_modules/
+dist/
+build/
+
+# data & logs
+.data/
+logs/
+*.log
+npm-debug.log*
+
+# runtime uploads
+uploads/
+tmp/
+temp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# archives
+*.zip
