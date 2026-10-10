@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>System Status — PRALAYA Archive Terminal</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/terminal.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-name">PRALAYA</span>
+      <span class="brand-sub">archive terminal &middot; records authority</span>
+    </div>
+    <nav class="nav" aria-label="primary">
+      <a href="/archive">Transparency Log</a>
+      <a href="/status" aria-current="page">System Status</a>
+    </nav>
+  </header>
+
+  <p class="banner" role="status">
+    <span class="tag">[CLOCK DISCIPLINE]</span>
+    <span>Time source unreachable; terminal running on board clock (+00:00:03 drift).
+    Attestation windows may reject at the boundary.</span>
+  </p>
+
+  <main id="main">
+    <section class="lede">
+      <p class="subtitle">Operations</p>
+      <h1>System Status</h1>
+      <p>
+        Self-reported health of the surviving archive services. Several subsystems were
+        disabled during the collapse and were never re-enabled. Values below are read
+        from the live process where they are safe to expose.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="build-title">
+      <div class="section-head">
+        <h2 id="build-title">Build</h2>
+        <span class="meta">read-only</span>
+      </div>
+      <div class="status-grid">
+        <div class="status-cell"><span class="k">Build</span><span class="v">2024.09.18-r7</span></div>
+        <div class="status-cell"><span class="k">Boot (UTC)</span><span class="v">{{BOOT_TIME}}</span></div>
+        <div class="status-cell"><span class="k">Runtime</span><span class="v">node {{NODE_VERSION}}</span></div>
+        <div class="status-cell"><span class="k">Indexed records</span><span class="v">{{ARCHIVE_COUNT}}</span></div>
+        <div class="status-cell"><span class="k">Published cases</span><span class="v">{{RELEASED_COUNT}}</span></div>
+        <div class="status-cell"><span class="k">Clock</span><span class="v warn">drift +00:00:03</span></div>
+        <div class="status-cell"><span class="k">Shards lost</span><span class="v warn">1,041</span></div>
+        <div class="status-cell"><span class="k">Adjudication</span><span class="v warn">pending</span></div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="subsys-title">
+      <div class="section-head">
+        <h2 id="subsys-title">Subsystems</h2>
+        <span class="meta">self-report</span>
+      </div>
+      <div class="panel table-wrap">
+        <table class="subsys">
+          <thead>
+            <tr>
+              <th scope="col">Subsystem</th>
+              <th scope="col">State</th>
+              <th scope="col">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>archive-index</td>
+              <td><span class="pill pill-ok">nominal</span></td>
+              <td>{{ARCHIVE_COUNT}} addresses routable; enumeration permitted by legacy policy</td>
+            </tr>
+            <tr>
+              <td>record-store</td>
+              <td><span class="pill pill-warn">degraded</span></td>
+              <td>shard loss concentrated in the transfer-manifest sector</td>
+            </tr>
+            <tr>
+              <td>release-renderer</td>
+              <td><span class="pill pill-ok">nominal</span></td>
+              <td>release gate evaluates after read (original behaviour retained)</td>
+            </tr>
+            <tr>
+              <td>content-negotiation</td>
+              <td><span class="pill pill-warn">degraded</span></td>
+              <td>public vhost negotiates JSON only; the audit dialect handler is unregistered</td>
+            </tr>
+            <tr>
+              <td>recovery-manifest-router</td>
+              <td><span class="pill pill-err">unregistered</span></td>
+              <td>archived during decommission; see <a href="/robots.txt">robots.txt</a></td>
+            </tr>
+            <tr>
+              <td>signer-01</td>
+              <td><span class="pill pill-warn">regenerating</span></td>
+              <td>no persisted key material; derived at boot (recipe below)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="signer-title">
+      <div class="section-head">
+        <h2 id="signer-title">Signer-01 &middot; Release Attestation Key</h2>
+        <span class="meta">material: not persisted</span>
+      </div>
+      <div class="panel panel-pad">
+<pre class="recipe"><span class="r-key">format</span>  token  = PRT1.&lt;payload-b64url&gt;.&lt;sig-b64url&gt;
+               sig  = HMAC-SHA256(key, "PRT1." + &lt;payload-b64url&gt;)
+
+<span class="r-key">recipe</span>  a = for each published case, ascending:
+             Sanctuary_ID + ":" + Evidence_Fragment_Count
+             joined with "|"
+        b = plain integer sum of Evidence_Fragment_Count over every
+            addressable record whose case-API <span class="r-amber">"released"</span> flag is false
+        key = sha256_hex("PRALAYA::" + a + "||" + b)
+
+<span class="r-dim">        Evidence_Fragment_Count is a read-time value; the register above
+        does not publish it. Query the case API for it.</span>
+
+<span class="r-key">scope</span>   ["manifest:read", "fragment:submit"]
+
+<span class="r-key">released</span> {{RELEASED_IDS}}
+
+<span class="r-key">retired</span> sample token &mdash; signed 2019 with a retired key, structure
+         reference only, will not verify against the derived key:
+<span class="token-line">{{SAMPLE_TOKEN}}</span></pre>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="log-title">
+      <div class="section-head">
+        <h2 id="log-title">Service Log</h2>
+        <span class="meta">tail -n 8 &middot; archive.log</span>
+      </div>
+      <div class="logbox" role="log">
+        <div class="logline"><span class="ts">[02:11:44]</span> index rebuild complete &mdash; 120 addresses</div>
+        <div class="logline"><span class="ts">[02:12:03]</span> <span class="lvl-ok">release-renderer</span>: gate evaluates post-read (legacy behaviour retained)</div>
+        <div class="logline"><span class="ts">[02:12:47]</span> <span class="lvl-warn">WARN</span> content negotiation: audit dialect unregistered on public vhost</div>
+        <div class="logline"><span class="ts">[02:13:10]</span> <span class="lvl-ok">signer-01</span>: no persisted material &mdash; deriving from telemetry</div>
+        <div class="logline"><span class="ts">[02:14:07]</span> recovery manifest compiled &mdash; integrity <span class="lvl-warn">UNVERIFIED</span> (adjudication pending)</div>
+        <div class="logline"><span class="ts">[02:15:01]</span> <span class="lvl-err">ERROR</span> clock discipline: board clock off by +00:00:03</div>
+        <div class="logline"><span class="ts">[02:16:29]</span> shard sweep: 1,041 objects unrecoverable</div>
+        <div class="logline"><span class="ts">[02:17:55]</span> collection route standing by on archived dialect &mdash; no clients since collapse</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footline">
+    <span>SANCTUARY NETWORK RECORDS AUTHORITY &middot; TERMINAL BUILD 2024.09.18-r7</span>
+    <span><a href="/archive">return to transparency log</a></span>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THE LAST DATASET // CTF 03 — METADATA FORENSICS</title>
+<meta name="description" content="Node 07 Recovery Archive — CHILD-17 provenance investigation.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<canvas id="noise" aria-hidden="true"></canvas>
+
+<!-- ══════════════════ HERO / SEAL ══════════════════ -->
+<section id="hero">
+  <div class="hl">
+    <div class="k reveal">NODE 07 · RECOVERY ARCHIVE</div>
+    <h1 class="reveal">THE LAST<br><b>DATASET</b></h1>
+    <div class="k dim reveal">CHILD DATASET — METADATA FORENSICS</div>
+    <div class="chips reveal">
+      <span class="chip">120 RECORDS</span>
+      <span class="chip">2 ARTIFACTS</span>
+      <span class="chip danger">PROVENANCE COMPROMISED</span>
+    </div>
+    <button class="tag big reveal" id="btn-enter">BREAK THE SEAL</button>
+    <div class="hero-foot reveal">
+      <span class="pulse-dot"></span> CTF 03 · THE SILENT TRAIL · REF CHILD-17
+    </div>
+    <div id="tk" aria-hidden="true"></div>
+  </div>
+
+  <div class="hr">
+    <div class="stamp">EYES ONLY</div>
+    <p class="memo-head">MEMO / 14 OCT 2026 / <span class="redact">ARCHIVIST V. ADEYEMI</span></p>
+    <p>Subject: the <b>Child Dataset</b>. The rows came back whole — every id present,
+       every score where a score belongs. It is the <span class="redact">metadata around them</span>
+       that does not survive cross-examination.</p>
+    <p>PRALAYA never touched the data. PRALAYA touched the <span class="redact">trail that vouches for it</span>:
+       seals struck below the floor, an audit clock walked past its window, child profiles
+       erased exactly where the parent admits an edit.</p>
+    <p>The records authority published three rules. Bring the findings — and understand that
+       <span class="redact">the log agreeing with the ledger</span> is the forgery, not the proof.</p>
+    <p class="memo-sign">The files remember what we tried to forget.</p>
+    <div class="memo-meta">ARCHIVE REF: CHILD-17 &nbsp;·&nbsp; CLEARANCE: RECOVERY OFFICER &nbsp;·&nbsp; INTEGRITY: <b class="bad">COMPROMISED</b></div>
+  </div>
+</section>
+
+<!-- ══════════════════ APP ══════════════════ -->
+<div id="app" hidden>
+  <aside>
+    <div class="id-block">
+      <div class="k">CTF 03</div>
+      <b>CHILD-17</b>
+      <span>PROVENANCE / ARTIFACT RECONSTRUCTION</span>
+    </div>
+    <nav id="nav" aria-label="stages"></nav>
+    <div class="side-foot">
+      <div class="meter">
+        <span class="k">INTEGRITY</span>
+        <span class="bad" id="integrity">COMPROMISED</span>
+      </div>
+      <div class="meter">
+        <span class="k">RECOVERY</span>
+        <span id="recovery-state">OPEN</span>
+      </div>
+      <div class="meter">
+        <span class="k">EVIDENCE</span>
+        <span id="ev-count">0</span>
+      </div>
+      <div class="side-clock k" id="side-clock">00:00:00 UTC</div>
+    </div>
+  </aside>
+
+  <main id="m" tabindex="-1"></main>
+</div>
+
+<!-- persistent evidence tray -->
+<div id="tray" hidden>
+  <div class="tray-head">
+    <span class="k">EVIDENCE COLLECTED</span>
+    <span class="tray-count" id="tray-count">0</span>
+    <button class="tray-toggle" id="tray-toggle" title="collapse">▾</button>
+  </div>
+  <div class="tray-items" id="tray-items"></div>
+</div>
+
+<!-- field / compare / trace modal -->
+<div id="modal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <button class="modal-x" id="modal-x" aria-label="close">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- toast -->
+<div id="toast" hidden></div>
+
+<script src="/js/explorer.js"></script>
+<script src="/js/inspector.js"></script>
+<script src="/js/graph.js"></script>
+<script src="/js/timeline.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

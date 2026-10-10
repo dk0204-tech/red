@@ -1,0 +1,17 @@
+{
+  "name": "red-zone-ctf-3",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Red Zone CTF 3 — METADATA FORENSICS (The Last Dataset). Node 07 / CHILD-17.",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "test": "node test/run.js",
+    "flag": "node tools/flag.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

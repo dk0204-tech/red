@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index, follow">
+  <title>PRALAYA Archive Terminal — Sanctuary Network Records Authority</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/terminal.css">
+  <link rel="stylesheet" href="/css/workstation.css">
+  <script defer src="/js/audio.js"></script>
+  <script defer src="/js/app.js"></script>
+</head>
+<body class="ws-body">
+  <a class="skip-link" href="#main">skip to content</a>
+
+  <header class="ws-top">
+    <div class="brand">
+      <span class="brand-name">PRALAYA</span>
+      <span class="ws-node">// RED-ZONE-04</span>
+      <span class="brand-sub">archive terminal</span>
+    </div>
+
+    <nav class="nav ws-nav-links" aria-label="primary">
+      <a href="/archive" aria-current="page">Archive</a>
+      <a href="/status">System Status</a>
+    </nav>
+
+    <div class="ws-top-right">
+      <span class="ws-live"><span class="dot dot-warn" aria-hidden="true"></span> node degraded</span>
+      <time id="ws-clock" class="ws-clock" aria-label="coordinated universal time">--:--:-- UTC</time>
+      <button type="button" class="ws-snd" id="sound-toggle" aria-pressed="true" title="toggle interface sound">SND</button>
+    </div>
+  </header>
+
+  <div class="ws-grid">
+    <!-- ============================================ left rail -->
+    <aside class="ws-left" aria-label="archive navigation">
+      <p class="rail-label">archive</p>
+      <nav class="ws-nav" id="ws-nav" aria-label="workspace">
+        <button type="button" class="ws-nav-btn is-active" data-view="index" aria-current="true">Case Index</button>
+        <button type="button" class="ws-nav-btn" data-view="forensics">Forensics</button>
+        <button type="button" class="ws-nav-btn" data-view="matrix">Data Matrix</button>
+        <button type="button" class="ws-nav-btn" data-view="graph">Relations</button>
+        <button type="button" class="ws-nav-btn" data-view="recovery">Recovery</button>
+        <button type="button" class="ws-nav-btn" data-view="system">System</button>
+        <button type="button" class="ws-nav-btn" data-view="terminal">Terminal</button>
+      </nav>
+
+      <div class="rail-block">
+        <p class="rail-label">recovery</p>
+        <div class="rec-state" id="rec-state" data-state="locked">
+          <span class="rec-word" id="rec-word">LOCKED</span>
+          <span class="rec-sub" id="rec-sub">channel not established</span>
+        </div>
+      </div>
+
+      <div class="rail-block">
+        <p class="rail-label">node health</p>
+        <div class="meter"><span class="meter-k">integrity</span>
+          <span class="meter-bar"><span class="meter-fill meter-w71"></span></span>
+          <span class="meter-v">71%</span></div>
+        <div class="meter"><span class="meter-k">index</span>
+          <span class="meter-bar"><span class="meter-fill meter-fill-amber" id="meter-index"></span></span>
+          <span class="meter-v" id="meter-index-v">6/120</span></div>
+        <div class="meter"><span class="meter-k">auth</span>
+          <span class="meter-bar"><span class="meter-fill meter-fill-red meter-w34"></span></span>
+          <span class="meter-v">partial</span></div>
+      </div>
+    </aside>
+
+    <!-- ============================================ workspace -->
+    <main class="ws-main" id="main">
+
+      <!-- ---------------------------------------- CASE INDEX -->
+      <section class="ws-view" data-view="index" aria-label="case index">
+        <p class="subtitle">Public transparency portal</p>
+        <h1 class="ws-h1">Sanctuary Network Records</h1>
+        <p class="ws-lede">
+          This terminal is the surviving public interface of the sanctuary records network.
+          It publishes the cases cleared for release under transparency ordinance 12-B and
+          answers direct record enquiries against the archive index. The archive is
+          incomplete. Where a field has been withheld from public projection, the terminal
+          does not currently report which one.
+        </p>
+
+        <div class="directive">
+          <span class="label">Recovery directive &mdash; intercepted, origin unverified</span>
+          <p>
+            &ldquo;Fragment 1 belongs only to the sanctuary records whose identity was fully
+            verified, never falsified to protect someone, and signed correctly. The terminal
+            thinks it knows which records those are. It&rsquo;s wrong about one of them.&rdquo;
+          </p>
+          <span class="origin">source: unknown &middot; routed through the recovery channel &middot; treat as advisory</span>
+        </div>
+
+        <section class="section" aria-labelledby="register-title">
+          <div class="section-head">
+            <h2 id="register-title">Public Release Register</h2>
+            <span class="meta">transparency ordinance 12-B &middot; {{RELEASED_COUNT}} of {{ARCHIVE_COUNT}} addresses</span>
+          </div>
+          <div class="case-grid" id="case-grid">
+{{RELEASED_CARDS}}
+          </div>
+          <p class="form-hint">Unlisted addresses are not published &mdash; the index knows more than the register admits.</p>
+        </section>
+
+        <section class="section" aria-labelledby="lookup-title">
+          <div class="section-head">
+            <h2 id="lookup-title">Case Lookup</h2>
+            <span class="meta">archive index &middot; live read</span>
+          </div>
+          <div class="lookup-grid">
+            <div class="panel panel-pad">
+              <label class="field-label" for="record-id">Record address</label>
+              <form class="lookup-form" id="lookup-form" novalidate>
+                <input id="record-id" name="id" type="text" inputmode="text"
+                       placeholder="S001" maxlength="8" autocomplete="off"
+                       spellcheck="false" aria-describedby="lookup-hint">
+                <button class="btn" type="submit">Retrieve</button>
+              </form>
+              <p class="form-hint" id="lookup-hint">format: S001 &hellip; S120 &middot; case-insensitive</p>
+              <p class="form-hint" id="lookup-status" role="status" aria-live="polite"></p>
+            </div>
+
+            <div class="result" id="lookup-result" aria-live="polite"></div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ---------------------------------------- FORENSICS -->
+      <section class="ws-view" data-view="forensics" hidden aria-label="record forensics">
+        <div class="ws-empty" id="forensics-empty">
+          <div class="ws-empty-code">NO RECORD LOADED</div>
+          <p>Select a case from the index, or retrieve one by address.</p>
+          <button type="button" class="btn" data-goto="index">Return to index</button>
+        </div>
+
+        <div id="forensics-body" hidden>
+          <p class="subtitle">archive forensics</p>
+          <h1 class="ws-h1" id="fx-title">&mdash;</h1>
+
+          <div class="fx-head">
+            <span class="pill" id="fx-status">—</span>
+            <span class="pill" id="fx-release">—</span>
+            <span class="pill" id="fx-provenance">—</span>
+            <span class="fx-event" id="fx-event">journal —</span>
+          </div>
+
+          <div class="fx-cols">
+            <section class="panel fx-panel">
+              <h2 class="fx-h">subject profile</h2>
+              <dl class="kv" id="fx-profile"></dl>
+            </section>
+
+            <section class="panel fx-panel">
+              <h2 class="fx-h">integrity</h2>
+              <div class="integ">
+                <div class="integ-row">
+                  <span class="meter-k">authenticity</span>
+                  <span class="meter-bar"><span class="meter-fill" id="fx-integ-bar"></span></span>
+                  <span class="meter-v" id="fx-integ-v">—</span>
+                </div>
+                <p class="integ-note" id="fx-integ-note"></p>
+                <dl class="kv kv-tight" id="fx-integrity"></dl>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel fx-panel">
+            <h2 class="fx-h">archive history</h2>
+            <ol class="timeline" id="fx-timeline" aria-label="record timeline"></ol>
+            <p class="timeline-detail" id="fx-timeline-detail">select an event for detail</p>
+          </section>
+
+          <section class="panel fx-panel">
+            <h2 class="fx-h">raw projection</h2>
+            <details class="raw">
+              <summary>machine view</summary>
+              <pre id="fx-raw"></pre>
+            </details>
+          </section>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------- MATRIX -->
+      <section class="ws-view" data-view="matrix" hidden aria-label="data matrix">
+        <div class="section-head">
+          <h2>Data Matrix</h2>
+          <span class="meta" id="matrix-meta">no index snapshot</span>
+        </div>
+
+        <div class="matrix-controls">
+          <button type="button" class="btn" id="matrix-scan">Scan Index</button>
+          <label class="field-label" for="matrix-filter">filter</label>
+          <input id="matrix-filter" class="ws-input" type="text" placeholder="id · name · sector · status" autocomplete="off" spellcheck="false">
+          <span class="matrix-progress" id="matrix-progress" hidden><span class="meter-bar"><span class="meter-fill" id="matrix-progress-fill"></span></span></span>
+        </div>
+
+        <div class="ws-empty ws-empty-sm" id="matrix-empty">
+          <div class="ws-empty-code">NO INDEX SNAPSHOT</div>
+          <p>The matrix is rendered from a live scan of the archive index. Nothing is cached on this terminal.</p>
+        </div>
+
+        <div class="panel table-wrap" id="matrix-wrap" hidden>
+          <table class="matrix" id="matrix-table">
+            <thead>
+              <tr>
+                <th scope="col" data-sort="Sanctuary_ID">id</th>
+                <th scope="col" data-sort="Original_Name">subject</th>
+                <th scope="col" data-sort="Identity_Record_Status">status</th>
+                <th scope="col" data-sort="Original_Sector_Of_Residence">sector</th>
+                <th scope="col" data-sort="Record_Authenticity_Score">auth</th>
+                <th scope="col" data-sort="Evidence_Fragment_Count">evid</th>
+                <th scope="col" data-sort="provenance">provenance</th>
+                <th scope="col" data-sort="sync_event">journal</th>
+                <th scope="col" data-sort="released">release</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------- GRAPH -->
+      <section class="ws-view" data-view="graph" hidden aria-label="relationship view">
+        <div class="section-head">
+          <h2>Relations</h2>
+          <span class="meta" id="graph-meta">no anchor record</span>
+        </div>
+        <div class="ws-empty ws-empty-sm" id="graph-empty">
+          <div class="ws-empty-code">NO ANCHOR RECORD</div>
+          <p>Open a record in forensics to map its declared relationships.</p>
+          <button type="button" class="btn" data-goto="index">Return to index</button>
+        </div>
+        <div class="graph-wrap" id="graph-wrap" hidden>
+          <svg id="graph-svg" viewBox="0 0 720 460" role="img" aria-label="relationship graph"></svg>
+          <div class="graph-legend" id="graph-legend"></div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------- RECOVERY -->
+      <section class="ws-view" data-view="recovery" hidden aria-label="fragment recovery console">
+        <div class="section-head">
+          <h2>Fragment Recovery</h2>
+          <span class="meta" id="rec-meta">attestation console · offline</span>
+        </div>
+
+        <div class="rec-banner" id="rec-banner">
+          <span class="rec-banner-k">recovery</span>
+          <span class="rec-banner-v" id="rec-banner-v">LOCKED</span>
+          <span class="rec-banner-note" id="rec-banner-note">channel not established</span>
+        </div>
+
+        <form class="rec-form" id="rec-form" novalidate>
+          <div class="rec-field rec-field-wide">
+            <label class="field-label" for="rec-manifest">manifest route <span class="rec-opt">GET &lt;route&gt;</span></label>
+            <input id="rec-manifest" class="ws-input" type="text" placeholder="GET &lt;route&gt;" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="rec-field rec-field-wide">
+            <label class="field-label" for="rec-endpoint">attestation endpoint</label>
+            <input id="rec-endpoint" class="ws-input" type="text" placeholder="POST &lt;endpoint&gt;" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="rec-field rec-field-wide">
+            <label class="field-label" for="rec-token">attestation token <span class="rec-opt">PRT1.…</span></label>
+            <input id="rec-token" class="ws-input" type="text" placeholder="PRT1.&lt;payload&gt;.&lt;sig&gt;" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="rec-field">
+            <label class="field-label" for="rec-event">sync event</label>
+            <input id="rec-event" class="ws-input" type="text" placeholder="SW-…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="rec-field">
+            <label class="field-label" for="rec-etag">manifest reference</label>
+            <input id="rec-etag" class="ws-input" type="text" placeholder="ETag from manifest" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="rec-field rec-field-wide">
+            <label class="field-label" for="rec-ids">candidate set <span class="rec-opt">one address per line</span></label>
+            <textarea id="rec-ids" class="ws-input ws-area" rows="7" spellcheck="false"></textarea>
+          </div>
+          <div class="rec-actions">
+            <button type="button" class="btn btn-ghost" id="rec-load">Load Manifest</button>
+            <button type="submit" class="btn btn-amber" id="rec-submit">Attest</button>
+            <button type="button" class="btn btn-ghost" id="rec-clear">Clear</button>
+          </div>
+        </form>
+
+        <p class="form-hint" id="rec-status" role="status" aria-live="polite"></p>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Recovery Notes</h2>
+            <span class="meta">artifacts recovered from the archived prefix</span>
+          </div>
+          <div class="notes-grid">
+            <div class="note-card">
+              <span class="note-k">manifest</span>
+              <p>The manifest is compiled, signed and sealed — and it says its own integrity is
+              <span class="warn-t">UNVERIFIED</span>. Fetch it with a token; reference its
+              <span class="teal-t">ETag</span> when you attest.</p>
+            </div>
+            <div class="note-card">
+              <span class="note-k">attempts</span>
+              <p>Previous operators failed here. Their attempts were logged without record
+              addresses — only which <span class="warn-t">references</span> were missing.</p>
+            </div>
+            <div class="note-card">
+              <span class="note-k">policy</span>
+              <p>Rejected attestations answer with a single generic error. The archive will
+              never tell you which candidate was wrong.</p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ---------------------------------------- SYSTEM -->
+      <section class="ws-view" data-view="system" hidden aria-label="system view">
+        <div class="section-head">
+          <h2>Archive Index</h2>
+          <span class="meta">deep index &middot; read-only</span>
+        </div>
+        <div class="status-grid">
+{{INDEX_CELLS}}
+        </div>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Sync Journal</h2>
+            <span class="meta">sync-archive &middot; event windows</span>
+          </div>
+          <div class="panel table-wrap">
+            <table class="journal">
+              <thead>
+                <tr>
+                  <th scope="col">event</th>
+                  <th scope="col">window</th>
+                  <th scope="col">outcome</th>
+                  <th scope="col">touched</th>
+                  <th scope="col">custodian</th>
+                  <th scope="col">note</th>
+                </tr>
+              </thead>
+              <tbody>
+{{JOURNAL_ROWS}}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Recovery Attempts</h2>
+            <span class="meta">recovery-attempts &middot; ids never recorded</span>
+          </div>
+          <div class="panel table-wrap">
+            <table class="attempts">
+              <thead>
+                <tr>
+                  <th scope="col">time</th>
+                  <th scope="col">phase</th>
+                  <th scope="col">code</th>
+                  <th scope="col">note</th>
+                </tr>
+              </thead>
+              <tbody>
+{{ATTEMPT_ROWS}}
+              </tbody>
+            </table>
+          </div>
+          <p class="form-hint">Full self-report available on <a href="/status">the status page</a>.</p>
+        </section>
+      </section>
+
+      <!-- ---------------------------------------- TERMINAL -->
+      <section class="ws-view" data-view="terminal" hidden aria-label="terminal mode">
+        <div class="term" id="term">
+          <div class="term-screen" id="term-screen" role="log" aria-live="polite" aria-label="terminal output">
+            <div class="term-line term-dim">PRALAYA://RED-04 — archived shell (read-mostly)</div>
+            <div class="term-line term-dim">type 'help' for available commands</div>
+          </div>
+          <form class="term-form" id="term-form" autocomplete="off">
+            <label class="term-prompt" for="term-input">pralaya@red-04:~$</label>
+            <input id="term-input" class="term-input" type="text" spellcheck="false" aria-label="terminal command">
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================================ right rail -->
+    <aside class="ws-right" aria-label="node telemetry">
+      <div class="rail-block">
+        <p class="rail-label">node telemetry</p>
+        <div class="tele"><span>cpu</span><b id="t-cpu">38%</b></div>
+        <div class="tele"><span>mem</span><b id="t-mem">61%</b></div>
+        <div class="tele"><span>archive</span><b>71.4%</b></div>
+        <div class="tele"><span>sync</span><b class="tele-warn">aborted</b></div>
+        <div class="tele"><span>auth</span><b class="tele-warn">partial</b></div>
+      </div>
+
+      <div class="rail-block">
+        <p class="rail-label">last event</p>
+        <div class="last-event">
+          <time id="t-event-time">04:17:09</time>
+          <span id="t-event-text">record index modified</span>
+          <span class="src">source <b id="t-event-src">CUSTODIAN-7</b></span>
+        </div>
+      </div>
+
+      <div class="rail-block">
+        <p class="rail-label">network</p>
+        <ul class="net-list" id="net-list">
+          <li class="net-idle">standby</li>
+        </ul>
+      </div>
+
+      <div class="rail-block">
+        <p class="rail-label">directive assist</p>
+        <div class="hints" id="hints">
+          <button type="button" class="hint-btn" data-hint="1">decrypt hint 1</button>
+          <div class="hint-body" id="hint-1" hidden>
+            The release gate evaluates <i>after</i> the read — every address the index knows
+            will answer the case API. The signer recipe needs values only that API holds,
+            so a full enumeration is unavoidable.
+          </div>
+          <button type="button" class="hint-btn" data-hint="2">decrypt hint 2</button>
+          <div class="hint-body" id="hint-2" hidden>
+            Attestations are bound to a synchronization event. The failed-attempt log under
+            the archived prefix lists exactly which references a submission must carry, and
+            the sync journal tells you which event compiled the manifest.
+          </div>
+          <button type="button" class="hint-btn" data-hint="3">decrypt hint 3</button>
+          <div class="hint-body" id="hint-3" hidden>
+            The manifest is authoritative but not final: cross its candidates against the
+            collection route, which only answers in its archived dialect — that dialect
+            holds the one column the directive cares about. Drop the falsified candidate
+            and attest the remaining set with token, ETag and event.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============================================ event stream -->
+  <footer class="ws-log" aria-label="event stream">
+    <span class="ws-log-tag">event stream</span>
+    <div class="ws-log-lines" id="log-lines" role="log" aria-live="polite"></div>
+  </footer>
+
+  <!-- ============================================ fragment recovery overlay -->
+  <div class="frag-overlay" id="frag-overlay" hidden role="dialog" aria-modal="true" aria-label="fragment recovered">
+    <div class="frag-box" id="frag-box">
+      <div class="frag-rule"></div>
+      <p class="frag-kicker" id="frag-kicker">archive integrity failure</p>
+      <p class="frag-sub" id="frag-sub">recovery channel established</p>
+      <h2 class="frag-title" id="frag-title">FRAGMENT 01</h2>
+      <div class="frag-bar"><span class="frag-bar-fill" id="frag-bar-fill"></span></div>
+      <dl class="frag-meta" id="frag-meta">
+        <dt>reconstruction</dt><dd id="frag-recon">pending</dd>
+        <dt>source</dt><dd>RED-ZONE-04</dd>
+        <dt>rows</dt><dd id="frag-rows">—</dd>
+        <dt>custodian</dt><dd>CUSTODIAN-7 [UNKNOWN]</dd>
+      </dl>
+      <p class="frag-recovered" id="frag-recovered" hidden>FRAGMENT 01 RECOVERED</p>
+      <div class="frag-flagwrap" id="frag-flagwrap" hidden>
+        <code class="frag-flag" id="frag-flag">—</code>
+        <button type="button" class="btn btn-ghost" id="frag-copy">copy</button>
+        <a class="btn" id="frag-download" href="#">download FRAGMENT_1.csv</a>
+      </div>
+      <p class="frag-custodian" id="frag-custodian" hidden>
+        CUSTODIAN-7 // I marked them false to keep them alive. The rest were cut away —
+        three fragments, gone before the last sync. Find them.
+      </p>
+      <p class="frag-next" id="frag-next" hidden>RED ZONE · 1 OF 4 RECOVERED · THE LAST DATASET CONTINUES ELSEWHERE</p>
+      <button type="button" class="btn btn-ghost" id="frag-close" hidden>close</button>
+      <div class="frag-rule"></div>
+    </div>
+  </div>
+</body>
+</html>

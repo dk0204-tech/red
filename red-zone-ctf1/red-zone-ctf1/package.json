@@ -1,0 +1,15 @@
+{
+  "name": "pralaya-archive-terminal",
+  "version": "1.0.0",
+  "description": "Red Zone CTF 1 - PRALAYA Archive Terminal (The Last Dataset / Cognitia '26)",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node test/solve.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

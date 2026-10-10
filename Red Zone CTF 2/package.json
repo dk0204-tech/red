@@ -1,0 +1,19 @@
+{
+  "name": "red-zone-ctf-2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Red Zone CTF 2 — THE SILENT EDIT. A terminal investigation over PARENT_FINAL.csv.",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "build": "node tools/build.js",
+    "start:prod": "node dist/backend/server.js",
+    "test": "node test/run.js",
+    "flag": "node tools/flag.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

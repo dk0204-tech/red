@@ -1,0 +1,19 @@
+services:
+  pralaya-archive:
+    build: .
+    image: pralaya-archive:1.0.0
+    container_name: pralaya-archive
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      # Rotate the flag by setting a private salt (keep it server-side only):
+      # - FLAG_SALT=your-organizer-secret
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

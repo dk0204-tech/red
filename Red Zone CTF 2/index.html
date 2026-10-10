@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Red Zone CTF 2 — THE SILENT EDIT. A terminal investigation over the PRALAYA archive.">
+<title>RED ZONE // THE SILENT EDIT — PRALAYA Archive</title>
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body data-screen="map">
+
+<div class="fx-scanlines" aria-hidden="true"></div>
+<div class="fx-vignette" aria-hidden="true"></div>
+<div class="fx-flash" id="fx-flash" aria-hidden="true"></div>
+
+<!-- ============================================================ -->
+<!-- SCREEN 1 — MAIN GAME : SECTOR MAP                             -->
+<!-- ============================================================ -->
+<section class="screen" id="screen-map">
+  <header class="topbar">
+    <div class="brand">PRALAYA<span>// SANCTUARY NETWORK</span></div>
+    <nav class="topnav">
+      <a href="#/" class="on">SECTORS</a>
+      <a href="#/zone">RED ZONE</a>
+      <a href="#/terminal">TERMINAL</a>
+    </nav>
+    <div class="topbar-right">
+      <span class="chip chip-warn blink">SIGNAL DEGRADED</span>
+      <time class="clock" id="clock-map">--:--:--</time>
+    </div>
+  </header>
+
+  <main class="mapwrap">
+    <div class="map-head">
+      <h1 class="map-title">SECTOR OVERVIEW</h1>
+      <p class="map-sub">node map · last sync unknown · one endpoint still answering</p>
+    </div>
+
+    <div class="map-body">
+      <div class="map-grid" id="map-grid" role="list">
+        <button class="zone-card" role="listitem" data-state="dead">
+          <span class="zc-id">SEC-01</span><span class="zc-name">CIVIC</span>
+          <span class="zc-meta"><b id="zc-civic">--</b> records</span><span class="zc-state">NO CARRIER</span>
+        </button>
+        <button class="zone-card" role="listitem" data-state="dead">
+          <span class="zc-id">SEC-02</span><span class="zc-name">MEDICAL</span>
+          <span class="zc-meta"><b id="zc-medical">--</b> records</span><span class="zc-state">NO CARRIER</span>
+        </button>
+        <button class="zone-card" role="listitem" data-state="dead">
+          <span class="zc-id">SEC-03</span><span class="zc-name">RESEARCH</span>
+          <span class="zc-meta"><b id="zc-research">--</b> records</span><span class="zc-state">NO CARRIER</span>
+        </button>
+        <button class="zone-card" role="listitem" data-state="dead">
+          <span class="zc-id">SEC-04</span><span class="zc-name">INFRASTRUCTURE</span>
+          <span class="zc-meta"><b id="zc-infrastructure">--</b> records</span><span class="zc-state">NO CARRIER</span>
+        </button>
+        <button class="zone-card" role="listitem" data-state="dead">
+          <span class="zc-id">SEC-05</span><span class="zc-name">INDUSTRIAL</span>
+          <span class="zc-meta"><b id="zc-industrial">--</b> records</span><span class="zc-state">NO CARRIER</span>
+        </button>
+        <button class="zone-card" role="listitem" data-state="dead">
+          <span class="zc-id">SEC-06</span><span class="zc-name">COMMUNICATIONS</span>
+          <span class="zc-meta"><b id="zc-communications">--</b> records</span><span class="zc-state">NO CARRIER</span>
+        </button>
+        <button class="zone-card zone-card-hot" role="listitem" data-state="live" id="card-redzone">
+          <span class="zc-id">SEC-00</span><span class="zc-name">RED ZONE</span>
+          <span class="zc-meta"><b id="zc-locked">--</b> locked records</span>
+          <span class="zc-state hot">QUARANTINE BREACHED · OPEN</span>
+        </button>
+      </div>
+
+      <aside class="map-side">
+        <div class="panel">
+          <h2 class="panel-h">ARCHIVE TELEMETRY</h2>
+          <dl class="kv" id="map-stats">
+            <dt>records mounted</dt><dd id="st-records">--</dd>
+            <dt>altered by PRALAYA</dt><dd id="st-altered">--</dd>
+            <dt>untouched</dt><dd id="st-untouched">--</dd>
+            <dt>signature failures</dt><dd id="st-sig" class="hot">--</dd>
+            <dt>falsified to protect</dt><dd id="st-falsified">--</dd>
+            <dt>evidence fragments</dt><dd id="st-evidence">--</dd>
+          </dl>
+        </div>
+
+        <div class="panel panel-story">
+          <h2 class="panel-h">SITREP</h2>
+          <p>The sanctuary network collapsed three years ago. Six sectors went dark in a night;
+             only the <b class="hot">RED ZONE</b> archive node still answers, and it answers
+             wrong.</p>
+          <p>PRALAYA edited the records before the end. Some edits it logged. Some it did not —
+             and the ones it did not log are the ones that matter.</p>
+          <p class="dim">Recover the off-record pair, follow their triads, tally the evidence,
+             assemble the recovery key.</p>
+          <a class="btn btn-primary btn-block" href="#/zone">ENTER RED ZONE →</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footbar">
+    <span>RED ZONE · CTF 02 — THE SILENT EDIT</span>
+    <span class="dim">dataset: PARENT_FINAL.csv · 120 sanctuary records</span>
+  </footer>
+</section>
+
+<!-- ============================================================ -->
+<!-- SCREEN 2 — RED ZONE APPROACH                                  -->
+<!-- ============================================================ -->
+<section class="screen" id="screen-zone" hidden>
+  <div class="hazard-strip" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">PRALAYA<span>// SANCTUARY NETWORK</span></div>
+    <nav class="topnav">
+      <a href="#/">SECTORS</a>
+      <a href="#/zone" class="on">RED ZONE</a>
+      <a href="#/terminal">TERMINAL</a>
+    </nav>
+    <div class="topbar-right">
+      <span class="chip chip-danger blink">RADIATION · LEVEL 4</span>
+      <time class="clock" id="clock-zone">--:--:--</time>
+    </div>
+  </header>
+
+  <main class="zonewrap">
+    <div class="zone-panel">
+      <div class="zone-kicker">RESTRICTED AREA — AUTHORISED RECOVERY OPERATORS ONLY</div>
+      <h1 class="zone-title glitch" data-text="RED ZONE">RED ZONE</h1>
+      <p class="zone-copy">
+        The corridor ends at a steel door with the records-authority seal burned off it.
+        Behind it sits <b>node SEC-00</b> — the PRALAYA archive terminal, still powered,
+        still indexing, still convinced it is telling the truth.
+      </p>
+
+      <div class="zone-logs">
+        <div class="zlog"><span class="zlog-k">GUARD LOG 04:12</span>
+          <span>door forced. power rerouted from the civic spine. the terminal booted itself.</span></div>
+        <div class="zlog"><span class="zlog-k">OPS 04:31</span>
+          <span>PRALAYA had time before the collapse. it used it on the identity records.</span></div>
+        <div class="zlog zlog-corrupt"><span class="zlog-k">?? 04:44</span>
+          <span>s̷ig̷na̷tu̷re̷ ch̷a̷i̷n̷  b̷ro̷k̷e̷n̷  — two entries never made the register</span></div>
+        <div class="zlog"><span class="zlog-k">OPS 05:02</span>
+          <span>jack in. read the intercepted log. find what it never logged.</span></div>
+      </div>
+
+      <div class="zone-actions">
+        <a class="btn btn-danger btn-big" href="#/terminal">JACK IN TO TERMINAL</a>
+        <a class="btn btn-ghost" href="#/">← retreat to map</a>
+      </div>
+    </div>
+
+    <div class="zone-side" aria-hidden="true">
+      <div class="door">
+        <div class="door-seal">SEC-00</div>
+        <div class="door-slit"></div>
+        <div class="door-label">ARCHIVE TERMINAL AHEAD</div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ============================================================ -->
+<!-- SCREEN 3 — RED ZONE ROOM / TERMINAL                           -->
+<!-- ============================================================ -->
+<section class="screen" id="screen-terminal" hidden>
+  <header class="topbar">
+    <div class="brand">PRALAYA<span>// RED ZONE NODE SEC-00</span></div>
+    <nav class="topnav">
+      <a href="#/">SECTORS</a>
+      <a href="#/zone">RED ZONE</a>
+      <a href="#/terminal" class="on">TERMINAL</a>
+    </nav>
+    <div class="topbar-right">
+      <span class="chip chip-danger">● REC</span>
+      <span class="chip" id="node-chip">NODE: SEC-00</span>
+      <time class="clock" id="clock-term">--:--:--</time>
+    </div>
+  </header>
+
+  <main class="termwrap">
+    <!-- ---------------- terminal column ---------------- -->
+    <div class="termcol">
+      <div class="termframe" id="termframe">
+        <div class="termtitle">
+          <span class="tdots"><i></i><i></i><i></i></span>
+          <span>PRALAYA ARCHIVE — CONSOLE</span>
+          <span class="dim" id="term-mode">interactive</span>
+        </div>
+
+        <div class="bootmask" id="bootmask">
+          <pre class="bootlog" id="bootlog"></pre>
+        </div>
+
+        <div class="termout" id="term-out" tabindex="0" aria-live="polite"></div>
+
+        <form class="termin" id="term-form" autocomplete="off">
+          <label class="prompt" for="term-in">redzone&nbsp;&gt;&nbsp;</label>
+          <input id="term-in" name="cmd" type="text" spellcheck="false" autocapitalize="off"
+                 autocorrect="off" placeholder="help" aria-label="terminal command">
+          <span class="caret" aria-hidden="true"></span>
+        </form>
+      </div>
+      <p class="termhint dim">history: ↑ ↓ · quick help: <code>help</code> · intercepted log: <code>brief</code> · key format: <code>protocol</code></p>
+    </div>
+
+    <!-- ---------------- side column ---------------- -->
+    <aside class="sidecol">
+      <div class="panel panel-objective">
+        <h2 class="panel-h">MISSION <span class="dim">/ recovery directive</span></h2>
+        <ol class="obj">
+          <li>Find the records PRALAYA altered <b>without logging</b> the alteration.</li>
+          <li>Follow each one&rsquo;s three linked records; keep the links the archive
+              <b>did</b> log.</li>
+          <li>Tally their evidence fragments, build the material, hash it.</li>
+          <li>Submit <code>RZ{&lt;32 hex&gt;}</code> below.</li>
+        </ol>
+        <p class="dim small">read the intercepted log with <code>brief</code> — it states the exact rules.</p>
+      </div>
+
+      <div class="panel panel-auth" id="auth-panel">
+        <h2 class="panel-h">RED ZONE AUTHENTICATION</h2>
+        <form id="flag-form" novalidate>
+          <label class="flabel" for="flag-input">ENTER RECOVERED FLAG</label>
+          <input id="flag-input" type="text" placeholder="RZ{...}" spellcheck="false"
+                 autocomplete="off" autocapitalize="off" maxlength="80">
+          <button class="btn btn-danger btn-block" type="submit" id="flag-submit">SUBMIT</button>
+        </form>
+        <div class="auth-result" id="auth-result" hidden>
+          <div class="auth-title" id="auth-title">ACCESS DENIED</div>
+          <pre class="auth-lines" id="auth-lines"></pre>
+        </div>
+      </div>
+
+      <div class="panel panel-hints">
+        <h2 class="panel-h">HINTS <span class="dim">/ cost: your pride</span></h2>
+        <div class="hintlist" id="hintlist">
+          <button class="hintbtn" data-hint="1"><span>HINT 1</span><em>the signature rule</em></button>
+          <button class="hintbtn" data-hint="2"><span>HINT 2</span><em>the triad</em></button>
+          <button class="hintbtn" data-hint="3"><span>HINT 3</span><em>the tally &amp; key</em></button>
+        </div>
+        <div class="hintbody" id="hintbody" hidden></div>
+      </div>
+
+      <div class="panel panel-proto">
+        <h2 class="panel-h">RECOVERY PROTOCOL <span class="dim">/ key format</span></h2>
+        <pre class="proto" id="proto-body">loading…</pre>
+      </div>
+    </aside>
+  </main>
+</section>
+
+<script src="/js/app.js"></script>
+<script src="/js/terminal.js"></script>
+</body>
+</html>
