@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="THE DEADLOCK ENGINE: BLACKOUT PROTOCOL — a server-authoritative recovery puzzle.">
+  <title>THE DEADLOCK ENGINE // BLACKOUT PROTOCOL</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <a class="skiplink" href="#engineCol">Skip to live engine</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brandmark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <path d="M16 2 L28 9 L28 23 L16 30 L4 23 L4 9 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M10 16 L14 20 L22 12" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span class="brandtext">RZ&nbsp;//&nbsp;<b>BLACKOUT&nbsp;PROTOCOL</b></span>
+    </div>
+    <div class="stagechip" id="stageChip" aria-live="polite">STAGE&nbsp;1&nbsp;/&nbsp;4</div>
+    <div class="topactions">
+      <button type="button" class="iconbtn" id="btnAudio" aria-pressed="false" title="Toggle synthesized audio">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ico">
+          <path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path class="audioripple" d="M16 9 Q18.5 12 16 15" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path class="audioripple" d="M18.5 7 Q22 12 18.5 17" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+        <span id="audioLabel">AUDIO&nbsp;OFF</span>
+      </button>
+      <button type="button" class="iconbtn" id="btnBriefing" title="Replay the current stage briefing">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ico">
+          <path d="M5 4 H19 V20 H5 Z M8 8 H16 M8 12 H16 M8 16 H13" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <span>BRIEFING</span>
+      </button>
+      <button type="button" class="iconbtn" id="btnTut" title="Replay the tutorial">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ico">
+          <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M12 11 V16 M12 8.2 V8.8" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+        <span>TUTORIAL</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- ══════════════ FACILITY (left) ══════════════ -->
+    <aside class="col colleft" id="facilityCol" aria-label="Facility overview">
+      <section class="panel">
+        <h2 class="coltitle">FACILITY</h2>
+        <ol class="stagetrack" id="stageTrack" aria-label="Stage progress"></ol>
+      </section>
+      <section class="panel">
+        <h3 class="paneltitle">DIAGNOSTIC BUDGET</h3>
+        <div id="budgetList" class="budgets"></div>
+      </section>
+      <section class="panel">
+        <h3 class="paneltitle">DISCOVERED</h3>
+        <ul id="discovered" class="discoveries"><li class="dim">Nothing inspected yet.</li></ul>
+      </section>
+      <section class="panel">
+        <h3 class="paneltitle">TRANSMISSION LOG</h3>
+        <ol id="transcript" class="transcript"><li class="dim">No actions recorded.</li></ol>
+      </section>
+    </aside>
+
+    <!-- ══════════════ LIVE ENGINE (center) ══════════════ -->
+    <section class="col colcenter" id="engineCol" aria-label="Live engine">
+      <div class="enginehead">
+        <span class="kicker" id="stageKicker">STAGE&nbsp;1</span>
+        <h1 id="stageTitleEl">CONNECTING…</h1>
+        <p class="objective" id="objectiveEl"></p>
+      </div>
+      <div id="viewHost" class="viewhost" tabindex="-1"></div>
+      <div id="feedback" class="feedback" hidden role="status"></div>
+      <div id="actionbar" class="actionbar"></div>
+      <div id="inspector" class="inspector" hidden></div>
+    </section>
+
+    <!-- ══════════════ DIAGNOSTICS (right) ══════════════ -->
+    <aside class="col colright" id="diagCol" aria-label="Diagnostics">
+      <section class="panel">
+        <h2 class="coltitle">DIAGNOSTICS</h2>
+        <h3 class="paneltitle">STANDING ORDERS</h3>
+        <ul id="rulesList" class="rules"></ul>
+      </section>
+      <section class="panel">
+        <h3 class="paneltitle">ADVISORY <span class="dim small">(progressively gated)</span></h3>
+        <div id="hintHost" class="hintbtns"></div>
+        <div id="hintOut" class="hintout" hidden></div>
+      </section>
+      <section class="panel">
+        <h3 class="paneltitle">SESSION</h3>
+        <p class="small dim">Reset wipes this session's progress, budgets, and hints. It cannot be undone.</p>
+        <button type="button" class="btn btn-danger" id="btnReset">RESET SESSION</button>
+        <div id="resetConfirm" class="confirmbox" hidden>
+          <p class="small">Confirm full reset?</p>
+          <div class="row">
+            <button type="button" class="btn btn-danger" id="btnResetYes">WIPE</button>
+            <button type="button" class="btn" id="btnResetNo">CANCEL</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ══════════════ OVERLAYS ══════════════ -->
+  <div id="ovIntro" class="overlay intro" hidden>
+    <div class="introart" aria-hidden="true">
+      <svg viewBox="0 0 800 300" class="introsvg" focusable="false">
+        <g class="introwires" fill="none" stroke-width="2">
+          <path d="M40 240 L160 240 L160 140 L300 140 L300 60"/>
+          <path d="M40 60 L120 60 L120 200 L260 200 L260 260 L460 260"/>
+          <path d="M760 240 L640 240 L640 140 L500 140 L500 60"/>
+          <path d="M760 60 L680 60 L680 200 L540 200 L540 260 L340 260"/>
+          <path d="M300 60 L400 60 L400 20 L500 60"/>
+        </g>
+        <g class="intrownodes">
+          <rect x="140" y="120" width="40" height="40" rx="4"/>
+          <rect x="620" y="120" width="40" height="40" rx="4"/>
+          <circle cx="400" cy="150" r="34"/>
+          <circle cx="260" cy="200" r="12"/>
+          <circle cx="540" cy="200" r="12"/>
+        </g>
+      </svg>
+    </div>
+    <div class="introtext">
+      <p class="introline l1">CENTRAL&nbsp;ATRIUM&nbsp;RELAY&nbsp;//&nbsp;SIGNAL&nbsp;ACQUIRED</p>
+      <p class="introline l2">The engine did not go dark. <b>It is waiting for a decision.</b></p>
+      <p class="introline l3">Four subsystems. Real state. Every rule discoverable — nothing hidden behind guesswork.</p>
+      <button type="button" class="btn btn-primary btn-big" id="btnEnter">ENTER THE FACILITY</button>
+    </div>
+  </div>
+
+  <div id="ovBriefing" class="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="briefTitle">
+      <p class="kicker" id="briefKicker">STAGE&nbsp;1&nbsp;BRIEFING</p>
+      <h2 id="briefTitle">BRIEFING</h2>
+      <div id="briefBody" class="briefbody"></div>
+      <div class="rulesblock">
+        <h3 class="paneltitle">RULES OF OPERATION <span class="dim small">(all of these are discoverable in play)</span></h3>
+        <ul id="briefRules" class="rules"></ul>
+      </div>
+      <div class="row right">
+        <button type="button" class="btn btn-primary" id="btnAckBrief">ACKNOWLEDGE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ovTut" class="overlay tut" hidden>
+    <div class="tutcard" role="dialog" aria-modal="false" aria-labelledby="tutStepTitle">
+      <p class="kicker" id="tutStepTitle">TUTORIAL</p>
+      <p id="tutText" class="tuttext"></p>
+      <div class="row right">
+        <button type="button" class="btn" id="btnTutSkip">SKIP</button>
+        <button type="button" class="btn btn-primary" id="btnTutNext">NEXT</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ovComplete" class="overlay complete" hidden>
+    <div class="modal big" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
+      <div class="restoreart" aria-hidden="true">
+        <svg viewBox="0 0 520 90" class="restoresvg" focusable="false">
+          <path d="M20 45 H500" fill="none" stroke="currentColor" stroke-width="3" class="restoreline"/>
+          <g class="restoredots">
+            <circle cx="60" cy="45" r="9"/><circle cx="150" cy="45" r="9"/>
+            <circle cx="240" cy="45" r="9"/><circle cx="330" cy="45" r="9"/>
+            <circle cx="420" cy="45" r="9"/><circle cx="490" cy="45" r="12"/>
+          </g>
+        </svg>
+      </div>
+      <p class="kicker green">FACILITY RESTORED</p>
+      <h2 id="doneTitle">BLACKOUT PROTOCOL COMPLETE</h2>
+      <p id="doneTransmission" class="transmission"></p>
+      <div class="flagbox">
+        <span class="kicker">RECOVERY TOKEN</span>
+        <code id="doneFlag" class="flagtext"></code>
+        <button type="button" class="btn" id="btnCopyFlag">COPY</button>
+      </div>
+      <div class="sealbox">
+        <label class="small" for="sealInput">Paste the token to seal your completion:</label>
+        <div class="row">
+          <input id="sealInput" type="text" autocomplete="off" spellcheck="false" placeholder="paste recovery token">
+          <button type="button" class="btn btn-primary" id="btnSeal">SEAL</button>
+        </div>
+        <p id="sealResult" class="small" hidden></p>
+      </div>
+      <div class="row right">
+        <button type="button" class="btn" id="btnCloseComplete">KEEP EXPLORING</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden role="status"></div>
+
+  <script src="/js/audio.js"></script>
+  <script src="/js/graph.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
