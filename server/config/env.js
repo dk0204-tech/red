@@ -47,6 +47,18 @@ const env = {
     /* Service token used by external CTF apps to report completions. */
     CTF_SERVICE_TOKEN: process.env.CTF_SERVICE_TOKEN || (isProd ? '' : 'dev-service-token'),
 
+    /* Public addresses of the five in-world challenge services, served to the
+       game at GET /api/ctf/links so a deployed page never has to carry a
+       localhost address. One per terminal (CTF_URL_1 … CTF_URL_5). Empty or
+       invalid → that terminal stays "not configured" in the browser. */
+    CTF_PUBLIC_URLS: {
+        1: process.env.CTF_URL_1 || '',
+        2: process.env.CTF_URL_2 || '',
+        3: process.env.CTF_URL_3 || '',
+        4: process.env.CTF_URL_4 || '',
+        5: process.env.CTF_URL_5 || ''
+    },
+
     ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@sanctuary.local',
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',      // used only by the seed script
     ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH || '', // preferred in production

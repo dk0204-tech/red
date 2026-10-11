@@ -9,6 +9,8 @@ const router = express.Router();
 router.post('/session', ctrl.createSession);
 router.get('/state', ctrl.getState);
 router.post('/verify', ctrl.verifyFlag);
+/* Public: the deployed challenge addresses this game instance advertises. */
+router.get('/links', ctrl.links);
 router.get('/reward/:which', ctrl.downloadReward);
 
 module.exports = router;

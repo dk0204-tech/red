@@ -1,1 +1,11 @@
 CTF[[:space:]]5[[:space:]]-[[:space:]]THE[[:space:]]LAST[[:space:]]GATEKEEPER/challenge/runtime/qemu/bin/libLLVM-22.dll filter=lfs diff=lfs merge=lfs -text
+
+# Challenge datasets are hash-pinned by the CTF tooling ("Red Zone CTF 2" tools/build.js
+# + test/run.js, "Red Zone CTF 3" test/run.js, and the red-zone-ctf1 copy check).
+# The pins are the canonical LF form, so force LF on checkout everywhere: otherwise a
+# Windows checkout (core.autocrlf=true) materialises CRLF and every pin check fails,
+# even though the dataset itself is untouched. Content is identical either way.
+"Red Zone CTF 2/data/PARENT_FINAL.csv" text eol=lf
+"Red Zone CTF 3/data/PARENT_FINAL.csv" text eol=lf
+"Red Zone CTF 3/data/CHILD_FINAL.csv" text eol=lf
+"red-zone-ctf1/red-zone-ctf1/data/PARENT_FINAL.csv" text eol=lf

@@ -4741,6 +4741,11 @@
             .then(function (ok) { return ok ? syncServerState() : null; })
             .catch(function () { /* offline — cached state only */ });
 
+        /* Pick up the challenge addresses this deployment advertises
+           (config/ctf-links.js → GET /api/ctf/links). One-shot, non-blocking:
+           without a reachable server the compiled config stays in use. */
+        if (typeof ctfRefreshLinks === 'function') ctfRefreshLinks();
+
         window.addEventListener('focus', function () {
             if (performance.now() - lastSyncAt < 10000) return;
             if (document.getElementById('final-overlay').classList.contains('open')) return;

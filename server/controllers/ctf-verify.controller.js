@@ -4,6 +4,7 @@
      POST /api/ctf/session        mint a signed anonymous session
      GET  /api/ctf/state          server-authoritative progression for it
      POST /api/ctf/verify         { ctf, flag } → validated completion
+     GET  /api/ctf/links          public challenge addresses for this deployment
      GET  /api/ctf/reward/:which  CHILD / PARENT dataset download (authorized)
 
    Verification is authoritative: a completion is written only after the
@@ -16,6 +17,9 @@
 const fs = require('fs');
 const verifiers = require('../services/ctf-verifiers');
 const progress = require('../services/ctf-progress.service');
+const env = require('../config/env');
+const logger = require('../utils/logger');
+const { validateCtfUrl } = require('../utils/url');
 const { asyncHandler, httpError } = require('../middleware/error.middleware');
 
 /* The session token may arrive as a header (API calls) or a query parameter
@@ -35,6 +39,35 @@ function requireSession(req) {
     if (!id) throw httpError(401, 'No valid CTF session — open a terminal first.', 'no_session');
     return id;
 }
+
+const CTF_NUMBERS = [1, 2, 3, 4, 5];
+
+/**
+ * GET /api/ctf/links — the public address of each in-world challenge service
+ * for THIS deployment (CTF_URL_1 … CTF_URL_5). Public on purpose: it is the
+ * same address every player is sent to, never a flag or a secret.
+ *
+ * Every value passes the server's own URL policy first, so a localhost or
+ * http:// address can never be handed to players from a production instance,
+ * and an empty / rejected value is reported as null (terminal stays safely
+ * "not configured").
+ */
+const links = asyncHandler(async (req, res) => {
+    const out = {};
+    CTF_NUMBERS.forEach((n) => {
+        const raw = env.CTF_PUBLIC_URLS[n];
+        if (!raw) { out[n] = null; return; }
+        const check = validateCtfUrl(raw);
+        if (!check.ok) {
+            logger.warn('CTF_URL_' + n + ' rejected by the URL policy', { reason: check.reason });
+            out[n] = null;
+            return;
+        }
+        out[n] = check.url;
+    });
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ links: out });
+});
 
 /** POST /api/ctf/session */
 const createSession = asyncHandler(async (req, res) => {
@@ -120,4 +153,4 @@ const downloadReward = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = { createSession, getState, verifyFlag, downloadReward };
+module.exports = { createSession, getState, verifyFlag, links, downloadReward };

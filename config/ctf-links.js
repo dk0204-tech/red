@@ -9,14 +9,27 @@
        CTF 4  CENTRAL ATRIUM    (Central Plaza)
        CTF 5  BIOARCHIVE        (Bio-Quarantine)
 
-   ► BEFORE DEPLOYING: replace ONLY the `url` values inside CTF_CONFIG below.
-     Keep them complete "http://" or "https://" addresses. Nothing else in
-     the application has to change.
+   ► Every entry carries TWO addresses:
+       devUrl  the 127.0.0.1 address of the challenge service on the
+               developer's own machine. It is used ONLY while the game
+               itself is served from a local host (localhost / 127.0.0.1).
+       url     the PUBLIC address of the deployed challenge service. It is
+               used by any deployed page, and it is empty until the
+               organizer sets it — the terminal then stays safely disabled
+               ("CTF CHANNEL NOT CONFIGURED") instead of pointing a player
+               at their own machine. Keep it a complete https:// address.
+
+   ► Two ways to set the public addresses — do not do both:
+       1. Deployed with the game server: set CTF_URL_1 … CTF_URL_5 (see
+          .env.example). The server publishes them at GET /api/ctf/links and
+          the game picks them up automatically at boot; the values here stay
+          as the offline fallback.
+       2. Static-only host: fill in the `url` values below before deploying.
 
    ► CTF 1 ships with the provided Red Zone CTF 1 backend
      (red-zone-ctf1/ — "PRALAYA Archive Terminal"), which listens on
      http://127.0.0.1:8080 by default and is auto-started by `npm start`.
-     Point `url` at your deployed Red Zone instance for the live event.
+     Point `url` / CTF_URL_1 at your deployed Red Zone instance for the live event.
 
    ► While a value is missing, empty, malformed, or contains "PLACEHOLDER",
      the matching terminal stays safely disabled: the player is told
@@ -37,37 +50,79 @@ const CTF_CONFIG = Object.freeze([
         name: 'GHOST SIGNAL',
         location: 'RELAY DISTRICT',
         zone: 'zone_bridge',
-        url: 'http://127.0.0.1:8080'   // Red Zone CTF 1 — PRALAYA Archive Terminal
+        devUrl: 'http://127.0.0.1:8080',   // local development only
+        url: ''                            // Red Zone CTF 1 — PRALAYA Archive Terminal (public address)
     },
     {
         id: 2,
         name: 'SANCTUARY ARCHIVE',
         location: 'ARCHIVE PRECINCT',
         zone: 'zone_vault',
-        url: 'http://127.0.0.1:8081'   // Red Zone CTF 2 — THE SILENT EDIT (existing `Red Zone CTF 2/` node)
+        devUrl: 'http://127.0.0.1:8081',   // local development only
+        url: ''                            // Red Zone CTF 2 — THE SILENT EDIT (public address)
     },
     {
         id: 3,
         name: 'CHILD DATASET',
         location: 'RESEARCH BLOCK',
         zone: 'zone_ai',
-        url: 'http://127.0.0.1:8082'   // Red Zone CTF 3 — METADATA FORENSICS (existing `Red Zone CTF 3/` node)
+        devUrl: 'http://127.0.0.1:8082',   // local development only
+        url: ''                            // Red Zone CTF 3 — METADATA FORENSICS (public address)
     },
     {
         id: 4,
         name: 'CENTRAL ATRIUM',
         location: 'CENTRAL PLAZA',
         zone: 'zone_atrium',
-        url: 'http://127.0.0.1:8090'   // CTF 4 — THE DEADLOCK ENGINE (existing `Bonus CTF/` node)
+        devUrl: 'http://127.0.0.1:8090',   // local development only
+        url: ''                            // CTF 4 — THE DEADLOCK ENGINE (public address)
     },
     {
         id: 5,
         name: 'BIOARCHIVE',
         location: 'BIO-QUARANTINE',
         zone: 'zone_bio',
-        url: 'http://127.0.0.1:8083'   // CTF 5 — THE LAST GATEKEEPER (existing `CTF 5 - THE LAST GATEKEEPER/`)
+        devUrl: 'http://127.0.0.1:8083',   // local development only
+        url: ''                            // CTF 5 — THE LAST GATEKEEPER (public address)
     }
 ]);
+
+/* --------------------------------------------- Environment detection ----- */
+/* A page served from a local host is a developer's own machine: only there
+   may a challenge be reached at 127.0.0.1. Every other host (the deployed
+   site) uses the public address, never a local one. */
+function ctfIsLocalPage() {
+    try {
+        const h = String((typeof location !== 'undefined' && location.hostname) || '').toLowerCase();
+        return h === '' || h === 'localhost' || h === '127.0.0.1' ||
+               h === '::1' || h === '[::1]' || h.slice(-10) === '.localhost';
+    } catch (err) {
+        return false;   // unknown host → safest is "not local"
+    }
+}
+
+/* True for loopback / private-network targets. The launcher refuses these for
+   any page that is not itself local, whatever a config value or a server says. */
+function ctfIsLocalAddress(url) {
+    try {
+        const h = new URL(String(url), (typeof location !== 'undefined' && location.href) || 'http://localhost/').hostname.toLowerCase();
+        return h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' ||
+               h === '::1' || h === '[::1]' || h.slice(-10) === '.localhost' ||
+               /^10\./.test(h) || /^192\.168\./.test(h) ||
+               /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /^169\.254\./.test(h);
+    } catch (err) {
+        return true;   // unparseable → treat as unsafe
+    }
+}
+
+/* The address a terminal must use right now. Never returns a local address
+   for a deployed page. */
+function ctfEntryUrl(entry) {
+    if (!entry) return null;
+    if (ctfIsLocalPage()) return entry.devUrl || entry.url || null;
+    const url = entry.url || null;
+    return (url && ctfIsLocalAddress(url)) ? null : url;
+}
 
 /* -------------------------------------------------------- In-game text ---- */
 const CTF_MSG_NOT_CONFIGURED = '⛔ CTF CHANNEL NOT CONFIGURED — This challenge will be available soon.';
@@ -101,12 +156,13 @@ function ctfResolve(terminalId) {
         entry = CTF_CONFIG.find(c => c.id === Number(terminalId.slice(3))) || null;
     }
     if (!entry) return { id: null, name: null, zone: terminalId || null, url: null, ok: false };
+    const url = ctfEntryUrl(entry);
     return {
         id: entry.id,
         name: entry.name,
         zone: entry.zone,
-        url: entry.url,
-        ok: isValidCTFUrl(entry.url)
+        url: url,
+        ok: isValidCTFUrl(url)
     };
 }
 
@@ -228,9 +284,50 @@ function openCTFForTerminal(terminalId, delayMs) {
     return ctfOpenTab(res.url, typeof delayMs === 'number' ? delayMs : 0);
 }
 
+/* ==================== Deployment-provided public addresses ================ */
+/* GET /api/ctf/links returns the addresses the organizer configured for this
+   deployment (server env CTF_URL_1 … CTF_URL_5). They are validated by the
+   server's own URL policy before they are handed out, and they are optional:
+   without them the compiled `url` values above are used. */
+
+/* Merge a { "1": "https://…" } map into the live config. Returns how many
+   addresses were applied. Malformed / disallowed values are ignored. */
+function ctfApplyLinks(links) {
+    if (!links || typeof links !== 'object') return 0;
+    let applied = 0;
+    CTF_CONFIG.forEach(function (entry) {
+        const candidate = links[entry.id] !== undefined ? links[entry.id] : links[String(entry.id)];
+        if (!isValidCTFUrl(candidate)) return;
+        // A local address is never acceptable for a deployed page.
+        if (!ctfIsLocalPage() && ctfIsLocalAddress(candidate)) return;
+        entry.url = candidate;
+        applied++;
+    });
+    return applied;
+}
+
+/* One-shot, non-blocking, never fatal — a page without a backend (static
+   host) simply keeps the compiled values. */
+function ctfRefreshLinks() {
+    try {
+        return fetch('/api/ctf/links', { headers: { accept: 'application/json' } })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) { return data && data.links ? ctfApplyLinks(data.links) : 0; })
+            .catch(function () { return 0; });
+    } catch (err) {
+        return Promise.resolve(0);
+    }
+}
+
 /* Handy for maintenance / debugging from the console. */
 function ctfStatus() {
     return CTF_CONFIG.map(function (c) {
-        return { id: c.id, name: c.name, zone: c.zone, url: c.url, ready: isValidCTFUrl(c.url) };
+        const url = ctfEntryUrl(c);
+        return {
+            id: c.id, name: c.name, zone: c.zone,
+            url: url,
+            ready: isValidCTFUrl(url),
+            mode: ctfIsLocalPage() ? 'development' : 'production'
+        };
     });
 }

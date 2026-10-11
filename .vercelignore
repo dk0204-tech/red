@@ -1,0 +1,37 @@
+# ============================================================================
+# THE LAST DATASET — Vercel deployment manifest (static frontend only).
+#
+# Vercel publishes this repository as a static site (the game in index.html).
+# The Express backend (server/) and the five challenge services run on their
+# own Node hosts, so none of them belong in the static mirror.
+#
+# Publishing them is an active information leak rather than just dead weight:
+#   Bonus CTF/server/engine.js      contains the CTF 4 flag
+#   Red Zone CTF 2 & 3 /tools/*     print the CTF 2 / CTF 3 flags
+#   data.js                         legacy flag/hint table (20 answers)
+#   _smoke.js                       development service token + admin password
+#   server/**                       verifier logic, seed, tests
+#
+# Files the live game actually needs stay published: index.html, config/,
+# src/, admin/, style.css, app.js, audio.js, ml.js, package.json.
+#
+# After deploying, confirm the leak is closed (expect 404):
+#   curl -o /dev/null -w '%{http_code}\n' https://<site>/Bonus%20CTF/server/engine.js
+#   curl -o /dev/null -w '%{http_code}\n' https://<site>/server/server.js
+# ============================================================================
+
+/server/
+/red-zone-ctf1/
+/Red Zone CTF 2/
+/Red Zone CTF 3/
+/Bonus CTF/
+/CTF 5 - THE LAST GATEKEEPER/
+/docs/
+/_smoke.js
+/_urlcheck.js
+/data.js
+/.data/
+/logs/
+/node_modules/
+.env
+.env.*
