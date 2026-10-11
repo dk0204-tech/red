@@ -52,6 +52,10 @@ const cfg = {
 
   /* Where a live gatekeeper session is obtained (see gatekeeper.js). */
   GATEKEEPER_BIN: process.env.GATEKEEPER_BIN || path.join(ROOT, 'challenge', 'gatekeeper'),
+  /* Private glibc 2.41 (Debian 13) for hosts whose system glibc predates the
+   * ELF's GLIBC_2.38 requirement (Render native runtime = Debian 12). */
+  GATEKEEPER_LOADER: process.env.GATEKEEPER_LOADER || path.join(ROOT, 'challenge', 'glibc', 'ld-linux-x86-64.so.2'),
+  GATEKEEPER_GLIBC_DIR: process.env.GATEKEEPER_GLIBC_DIR || path.join(ROOT, 'challenge', 'glibc'),
   QEMU_BIN: process.env.QEMU_BIN || path.join(ROOT, 'challenge', 'runtime', 'qemu', 'bin', 'qemu-system-x86_64.exe'),
   QEMU_KERNEL: process.env.QEMU_KERNEL || path.join(ROOT, 'challenge', 'runtime', 'kernel', 'vmlinuz-virt'),
   QEMU_BUSYBOX: process.env.QEMU_BUSYBOX || path.join(ROOT, 'challenge', 'runtime', 'kernel', 'busybox'),
