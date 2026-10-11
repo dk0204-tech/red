@@ -1,15 +1,13 @@
+
 'use strict';
 /*
  * CTF 5 — session bridge.
  *
- * Fans one live gatekeeper session out to a client:
+ * Supports:
  *   - WebSocket clients (the in-page terminal)
- *   - raw TCP clients (nc HOST 31337 — the method in challenge/CHALLENGE.md)
+ *   - Raw TCP clients (nc HOST 31337)
  *
- * Every byte produced by the challenge flows through here, so a successful
- * exploit performed anywhere is observed and validated server-side.
- * Completion is awarded ONLY by validate.js (SHA-256 commitment), never by
- * client state.
+ * Completion is recorded server-side only.
  */
 const net = require('net');
 const cfg = require('./config');
@@ -30,146 +28,239 @@ function onFlagObserved(candidate) {
 }
 
 function stats() {
-  return { activeSessions, maxSessions: cfg.MAX_SESSIONS, uptimeMs: Date.now() - startedAt };
+  return {
+    activeSessions,
+    maxSessions: cfg.MAX_SESSIONS,
+    uptimeMs: Date.now() - startedAt,
+  };
 }
 
 function sessionLimitReached() {
   return activeSessions >= cfg.MAX_SESSIONS;
 }
 
-/**
- * Wraps a backend session with limits + idle timeout.
- * Returns a handle with write/close and lifecycle events for the transport.
- */
 async function createManagedSession(clientHooks) {
   if (sessionLimitReached()) {
     throw new Error('too many live sessions');
   }
+
   activeSessions += 1;
+
   let closed = false;
   let idleTimer = null;
   let bytesOut = 0;
   let bytesIn = 0;
+  let handle = null;
+  let pendingEndReason = null;
 
-  const touch = () => {
+  function finish(reason) {
+    if (closed) return;
+    closed = true;
+
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+
+    activeSessions = Math.max(0, activeSessions - 1);
+    clientHooks.onEnd && clientHooks.onEnd(reason || 'closed');
+  }
+
+  function touch() {
+    if (closed) return;
+
     if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => handle.close('idle timeout'), cfg.SESSION_IDLE_MS);
+
+    idleTimer = setTimeout(() => {
+      if (handle) handle.close('idle timeout');
+      else finish('idle timeout');
+    }, cfg.SESSION_IDLE_MS);
+
     if (idleTimer.unref) idleTimer.unref();
-  };
+  }
 
-  const session = await gatekeeper.openSession({
-    onOpen: () => clientHooks.onOpen && clientHooks.onOpen(),
-    onData(buf) {
-      touch();
-      bytesOut += buf.length;
-      if (bytesOut > cfg.SESSION_MAX_BYTES) {
-        handle.close('session byte limit');
-        return;
-      }
-      clientHooks.onData && clientHooks.onData(buf);
-    },
-    onEnd(reason) {
-      handle.finish(reason);
-    },
-    onFlag: onFlagObserved,
-  });
+  let session;
 
-  const handle = {
+  try {
+    session = await gatekeeper.openSession({
+      onOpen: () => {
+        if (!closed && clientHooks.onOpen) clientHooks.onOpen();
+      },
+
+      onData(buf) {
+        if (closed) return;
+
+        touch();
+        bytesOut += buf.length;
+
+        if (bytesOut > cfg.SESSION_MAX_BYTES) {
+          if (handle) handle.close('session byte limit');
+          else finish('session byte limit');
+          return;
+        }
+
+        clientHooks.onData && clientHooks.onData(buf);
+      },
+
+      onEnd(reason) {
+        if (handle) finish(reason);
+        else pendingEndReason = reason || 'closed';
+      },
+
+      onFlag: onFlagObserved,
+    });
+  } catch (err) {
+    finish(`backend error: ${err.message}`);
+    throw err;
+  }
+
+  handle = {
     bytesIn: () => bytesIn,
     bytesOut: () => bytesOut,
+
     write(buf) {
       if (closed) return;
+
       touch();
       bytesIn += buf.length;
+
       if (bytesIn > cfg.SESSION_MAX_BYTES) {
         handle.close('session byte limit');
         return;
       }
+
       session.write(buf);
     },
-    finish(reason) {
-      if (closed) return;
-      closed = true;
-      if (idleTimer) clearTimeout(idleTimer);
-      activeSessions = Math.max(0, activeSessions - 1);
-      clientHooks.onEnd && clientHooks.onEnd(reason || 'closed');
-    },
+
+    finish,
+
     close(reason) {
-      session.close();
-      handle.finish(reason || 'closed');
+      if (closed) return;
+
+      try {
+        session.close();
+      } finally {
+        finish(reason || 'closed');
+      }
     },
   };
 
-  touch();
+  if (pendingEndReason !== null) {
+    finish(pendingEndReason);
+  } else {
+    touch();
+  }
+
   return handle;
 }
 
-/** Bridges a `ws` WebSocket connection to a live session. */
 async function attachWebSocket(ws) {
   let handle = null;
-  let pending = [];
+
   try {
     handle = await createManagedSession({
       onData(buf) {
-        if (ws.readyState === ws.OPEN) ws.send(buf, { binary: true });
+        if (ws.readyState === ws.OPEN) {
+          ws.send(buf, { binary: true });
+        }
       },
+
       onEnd(reason) {
         if (ws.readyState === ws.OPEN) {
-          try { ws.close(1000, String(reason).slice(0, 100)); } catch { /* ignore */ }
+          try {
+            ws.close(1000, String(reason).slice(0, 100));
+          } catch {
+            // Ignore close errors.
+          }
         }
       },
     });
   } catch (err) {
-    try { ws.close(1013, String(err.message).slice(0, 100)); } catch { /* ignore */ }
+    console.error(`[ws] session failed: ${err.message}`);
+
+    try {
+      if (ws.readyState === ws.OPEN || ws.readyState === ws.CONNECTING) {
+        ws.close(1013, 'Gatekeeper session unavailable');
+      }
+    } catch {
+      // Ignore close errors.
+    }
+
     return;
   }
-  ws.on('message', (data, isBinary) => {
-    const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
-    handle.write(buf);
-    void isBinary;
-    void pending;
+
+  ws.on('message', (data) => {
+    if (handle) {
+      handle.write(Buffer.isBuffer(data) ? data : Buffer.from(data));
+    }
   });
+
   ws.on('close', () => handle && handle.close('websocket closed'));
   ws.on('error', () => handle && handle.close('websocket error'));
 }
 
-/** Bridges a raw TCP client (nc HOST 31337) to a live session. */
 async function attachRawTcp(sock) {
   let handle = null;
+
   try {
     handle = await createManagedSession({
-      onData(buf) { if (sock.writable) sock.write(buf); },
-      onEnd() { try { sock.destroy(); } catch { /* ignore */ } },
+      onData(buf) {
+        if (sock.writable) sock.write(buf);
+      },
+
+      onEnd() {
+        try {
+          sock.destroy();
+        } catch {
+          // Ignore socket errors.
+        }
+      },
     });
   } catch (err) {
-    try { sock.end(`\r\n[ctf5] service busy: ${err.message}\r\n`); } catch { /* ignore */ }
+    try {
+      sock.end(`\r\n[ctf5] service unavailable: ${err.message}\r\n`);
+    } catch {
+      // Ignore socket errors.
+    }
     return;
   }
-  sock.on('data', (buf) => handle.write(buf));
+
+  sock.on('data', (buf) => handle && handle.write(buf));
+
   const bye = () => handle && handle.close('tcp closed');
   sock.on('close', bye);
   sock.on('error', bye);
 }
 
-/** Starts the raw nc-facing listener. Returns the net.Server. */
 function startRawTcp(onListening) {
+  if (!Number.isInteger(cfg.TCP_PORT) || cfg.TCP_PORT <= 0) {
+    console.log('[tcp] raw TCP listener disabled');
+    return null;
+  }
+
   const server = net.createServer((sock) => {
     sock.setNoDelay(true);
-    attachRawTcp(sock);
+    void attachRawTcp(sock);
   });
+
   server.on('error', (err) => {
     console.error(`[tcp:${cfg.TCP_PORT}] error: ${err.message}`);
-    if (err.code === 'EADDRINUSE') {
-      console.error(
-        `[tcp:${cfg.TCP_PORT}] port already in use — stop the other service or set TCP_PORT=0 to disable the raw listener.`
-      );
-    }
   });
-  server.listen(cfg.TCP_PORT, () => {
-    console.log(`[tcp] raw challenge listener on 0.0.0.0:${cfg.TCP_PORT} (nc HOST ${cfg.TCP_PORT})`);
-    onListening && onListening();
+
+  server.listen(cfg.TCP_PORT, '0.0.0.0', () => {
+    console.log(
+      `[tcp] raw challenge listener on 0.0.0.0:${cfg.TCP_PORT}`
+    );
+    if (onListening) onListening();
   });
+
   return server;
 }
 
-module.exports = { attachWebSocket, attachRawTcp, startRawTcp, stats, onFlagObserved };
+module.exports = {
+  attachWebSocket,
+  attachRawTcp,
+  startRawTcp,
+  stats,
+  onFlagObserved,
+};
