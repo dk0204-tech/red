@@ -758,6 +758,42 @@
             flex-wrap: wrap;
         }
 
+        .flag-submit-btn.purple-btn {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: #fff;
+            border: 1px solid rgba(188, 140, 255, 0.7);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.45);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .flag-submit-btn.purple-btn:hover {
+            background: linear-gradient(135deg, #c084fc, #9333ea);
+            box-shadow: 0 0 32px rgba(188, 140, 255, 0.8);
+            filter: brightness(1.15);
+            transform: scale(1.04);
+            color: #fff;
+        }
+
+        .final-actions button,
+        .final-actions a {
+            padding: 12px 24px;
+            font-family: var(--font-head);
+            font-weight: 900;
+            font-size: 14px;
+            line-height: 1.2;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            border-radius: 14px;
+        }
+
         .final-card .flag-status {
             display: block;
             margin-top: 16px;
@@ -869,6 +905,7 @@
                     <button class="flag-submit-btn" id="modal-open-ctf" style="display: none">ACCESS TERMINAL</button>
                     <button class="flag-submit-btn secondary" id="modal-reward-btn" style="display: none">DOWNLOAD CHILD DATASET</button>
                     <button class="flag-submit-btn exit-btn" id="modal-exit-btn" style="display: none">EXIT THE MAP</button>
+                    <a href="https://red-purple-slideshow.vercel.app/" target="_blank" rel="noopener noreferrer" class="flag-submit-btn purple-btn" id="modal-purple-btn" style="display: none">MOVE TO PURPLE ZONE</a>
                     <button class="flag-submit-btn secondary" id="modal-return-btn">RETURN TO GAME</button>
                 </div>
                 <div class="flag-status" id="modal-flag-status"></div>
@@ -889,6 +926,7 @@
             </p>
             <div class="final-actions">
                 <button class="flag-submit-btn" id="final-parent-btn">DOWNLOAD PARENT DATASET</button>
+                <a href="https://red-purple-slideshow.vercel.app/" target="_blank" rel="noopener noreferrer" class="flag-submit-btn purple-btn" id="final-purple-btn">MOVE TO PURPLE ZONE</a>
                 <button class="flag-submit-btn secondary" id="final-close-btn">CONTINUE EXPLORING</button>
             </div>
             <div class="flag-status" id="final-status"></div>
@@ -3158,6 +3196,8 @@
             btnVerify.style.display = 'none';
             btnReward.style.display = 'none';
             btnExit.style.display = 'none';
+            const btnPurpleModal = document.getElementById('modal-purple-btn');
+            if (btnPurpleModal) btnPurpleModal.style.display = 'none';
             btnReturn.style.display = '';
             flagGroup.classList.remove('open');
             chip.classList.remove('show');
@@ -3202,7 +3242,11 @@
                 }
 
                 // The final exit appears only after a verified CTF 05 flag.
-                if (n === 5 && finalExitUnlocked()) btnExit.style.display = '';
+                if (n === 5 && finalExitUnlocked()) {
+                    btnExit.style.display = '';
+                    const btnPurpleModal = document.getElementById('modal-purple-btn');
+                    if (btnPurpleModal) btnPurpleModal.style.display = 'inline-flex';
+                }
 
                 const allDone = mandatoryComplete();
                 if (allDone) {
@@ -3268,6 +3312,18 @@
         document.getElementById('btn-final-exit').addEventListener('click', openFinalExit);
         document.getElementById('final-close-btn').addEventListener('click', closeFinalExit);
         document.getElementById('final-parent-btn').addEventListener('click', function () { downloadReward('parent'); });
+        const finalPurple = document.getElementById('final-purple-btn');
+        if (finalPurple) {
+            finalPurple.addEventListener('click', function () {
+                if (typeof audio !== 'undefined' && audio.playClick) audio.playClick();
+            });
+        }
+        const modalPurple = document.getElementById('modal-purple-btn');
+        if (modalPurple) {
+            modalPurple.addEventListener('click', function () {
+                if (typeof audio !== 'undefined' && audio.playClick) audio.playClick();
+            });
+        }
 
         // Open the REAL CTF page/backend (config/ctf-links.js) in a new tab.
         function openActiveCtf() {
