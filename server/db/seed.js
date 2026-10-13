@@ -39,6 +39,12 @@ const DEFAULT_CTFS = [
         zone: 'zone_atrium', points: 300, difficulty: 'HARD', display_order: 4,
         terminal_label: 'ACCESS CENTRAL ATRIUM CORE', fragment_id: 'FRAGMENT-04',
         description: 'Open the final passage at the heart of Sanctuary Zero.'
+    },
+    {
+        slug: 'bioarchive', name: 'BIOARCHIVE', sector: 'research',
+        zone: 'zone_bio', points: 0, difficulty: 'HARD', display_order: 5,
+        terminal_label: 'ACCESS BIOARCHIVE', fragment_id: 'FRAGMENT-05',
+        description: 'Central terminal registration slot for Red terminal 5. It is registration-only and carries no authoritative browser score; the hub remains the sole ledger.'
     }
 ];
 
