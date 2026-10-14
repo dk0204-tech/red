@@ -1219,7 +1219,14 @@
 
         function ctfZoneById(n) { return ZONES.find(z => z.ctf === n) || null; }
 
-        function isCtfUnlocked(n) { return ctfProgress.unlocked.indexOf(n) !== -1; }
+        function isCtfUnlocked(n) {
+            if (n === 1) return true;
+            if (ctfProgress.unlocked.indexOf(n) !== -1) return true;
+            if (n === 2 && isCtfCompleted(1)) return true;
+            if (n === 3 && isCtfCompleted(1) && isCtfCompleted(2)) return true;
+            if ((n === 4 || n === 5) && isCtfCompleted(1) && isCtfCompleted(2) && isCtfCompleted(3)) return true;
+            return false;
+        }
 
         function isCtfCompleted(n) { const z = ctfZoneById(n); return !!(z && z.solved); }
 
@@ -3459,8 +3466,14 @@
                     const currentSolved = (serverState && Array.isArray(serverState.solved)) ? serverState.solved.slice() : [];
                     if (!currentSolved.includes(ctf)) currentSolved.push(ctf);
                     const isAllDone = [1, 2, 3, 5].every(id => currentSolved.includes(id));
+                    // Derive the unlock chain from solved state (mirrors recomputeCtfProgress)
+                    const fallbackUnlocked = [1];
+                    if (currentSolved.includes(1)) fallbackUnlocked.push(2);
+                    if (currentSolved.includes(1) && currentSolved.includes(2)) fallbackUnlocked.push(3);
+                    if (currentSolved.includes(1) && currentSolved.includes(2) && currentSolved.includes(3)) fallbackUnlocked.push(4, 5);
                     const fallbackState = {
                         solved: currentSolved,
+                        unlocked: fallbackUnlocked,
                         finalExitUnlocked: isAllDone || ctf === 5,
                         bonusUnlocked: currentSolved.includes(4)
                     };
@@ -3521,8 +3534,12 @@
 
             challengesSolved = ZONES.filter(z => z.ctf && z.solved).length;
             ctfProgress.completed = solvedIds.slice();
-            ctfProgress.unlocked = (Array.isArray(state.unlocked) && state.unlocked.length)
-                ? state.unlocked.slice() : [1];
+            recomputeCtfProgress();
+            if (Array.isArray(state.unlocked) && state.unlocked.length) {
+                for (const u of state.unlocked) {
+                    if (!ctfProgress.unlocked.includes(u)) ctfProgress.unlocked.push(u);
+                }
+            }
             ctfProgress.current = ctfProgress.unlocked.filter(n => solvedIds.indexOf(n) === -1)[0] || ACTIVE_CTF_COUNT;
 
             updateChallengeHUD();
@@ -3860,12 +3877,22 @@
                 console.warn("Central Hub zone-ctf-complete notice error:", e);
             }
 
-            // 2. Also notify Central Hub completion endpoint
+            // 2. Authoritative Red Zone direct completion & dataset unlock on Central Hub
+            try {
+                await fetch('https://last-dataset.vercel.app/api/integrations/red-complete', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + serviceToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teamId: tid, delegateId: 'OPERATOR' })
+                });
+            } catch (err) {
+                console.warn("Central Hub integrations/red-complete error:", err);
+            }
+
             try {
                 await fetch('https://last-dataset.vercel.app/api/red/complete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-team-id': tid },
-                    body: JSON.stringify({ teamId: tid })
+                    headers: { 'Authorization': 'Bearer ' + serviceToken, 'Content-Type': 'application/json', 'x-team-id': tid },
+                    body: JSON.stringify({ teamId: tid, delegateId: 'OPERATOR' })
                 });
             } catch (err) {
                 console.warn("Central Hub red/complete error:", err);
