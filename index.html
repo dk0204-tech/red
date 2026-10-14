@@ -3187,7 +3187,14 @@
             activeZone = z;
             if (document.pointerLockElement) document.exitPointerLock();
 
-            const n = z.ctf;
+            let n = z.ctf;
+            if (!n) {
+                if (z.id === 'zone_bridge' || (z.title && z.title.includes('GHOST SIGNAL'))) n = 1;
+                else if (z.id === 'zone_vault' || (z.title && z.title.includes('ARCHIVE'))) n = 2;
+                else if (z.id === 'zone_ai' || (z.title && z.title.includes('CHILD'))) n = 3;
+                else if (z.id === 'zone_atrium' || (z.title && z.title.includes('Atrium'))) n = 4;
+                else if (z.id === 'zone_bio' || (z.title && z.title.includes('Bioarchive'))) n = 5;
+            }
             const status = document.getElementById('modal-flag-status');
             const code = document.getElementById('modal-code');
             const btnOpen = document.getElementById('modal-open-ctf');
@@ -3359,7 +3366,7 @@
             } else {
                 const btnDownload = document.getElementById('modal-download-data');
                 if (btnDownload) btnDownload.style.display = 'none';
-                code.innerText = 'NO DATA';
+                code.innerText = '> ' + (z.title || 'NODE') + '\n> CHANNEL OFFLINE // NO ACTIVE TRANSMISSION';
                 status.className = 'flag-status';
                 status.innerText = '';
             }
