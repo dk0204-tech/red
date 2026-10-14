@@ -3381,10 +3381,14 @@
                 const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                 const timer = controller ? setTimeout(function () { controller.abort(); }, opts.timeout || 6000) : null;
                 const tid = getResolvedTeamId();
+                const lt = getResolvedLaunchToken();
                 const headers = { 
-                    accept: 'application/json',
-                    'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal'
+                    accept: 'application/json'
                 };
+                if (lt) {
+                    headers['Authorization'] = 'Bearer ' + lt;
+                    headers['x-launch-token'] = lt;
+                }
                 if (opts.body !== undefined) headers['content-type'] = 'application/json';
                 if (token) headers['x-ctf-session'] = token;
                 if (tid) headers['x-team-id'] = tid;
@@ -3495,11 +3499,12 @@
 
                     // Record solve asynchronously on Central Hub
                     try {
+                        const lt = getResolvedLaunchToken();
                         fetch('https://last-dataset.vercel.app/api/integrations/zone-ctf-complete', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal',
+                                ...(lt ? { 'Authorization': 'Bearer ' + lt, 'x-launch-token': lt } : {}),
                                 'x-team-id': tid
                             },
                             body: JSON.stringify({
@@ -3507,6 +3512,7 @@
                                 zoneId: 'red',
                                 challengeId: 'red-0' + ctf,
                                 points: 0,
+                                launchToken: lt || undefined,
                                 allZoneChallenges: ['red-01', 'red-02', 'red-03', 'red-04', 'red-05']
                             })
                         }).catch(() => {});
@@ -3874,6 +3880,18 @@
             } catch (e) { return ''; }
         }
 
+        function getResolvedLaunchToken() {
+            try {
+                const p = new URLSearchParams(window.location.search);
+                const lt = (p.get('launchToken') || sessionStorage.getItem('tld_launch_token') || localStorage.getItem('tld_launch_token') || '').trim();
+                if (lt) {
+                    try { sessionStorage.setItem('tld_launch_token', lt); } catch (_) {}
+                    return lt;
+                }
+            } catch (_) {}
+            return '';
+        }
+
         function updatePurpleLinks() {
             const tid = getResolvedTeamId();
             const baseUrl = 'https://red-purple-slideshow.vercel.app/';
@@ -3901,9 +3919,15 @@
             const tid = getResolvedTeamId();
             if (!tid) return;
             try {
-                const res = await fetch('https://last-dataset.vercel.app/api/zone/status?zoneId=red&team=' + encodeURIComponent(tid));
+                let res = await fetch('https://last-dataset.vercel.app/api/zone/status?zoneId=red&team=' + encodeURIComponent(tid));
                 if (res.ok) {
-                    const data = await res.json();
+                    let data = await res.json();
+                    if (!data.unlocked) {
+                        // In case of slight transit replication lag, retry once after 1.5s before showing overlay
+                        await new Promise(r => setTimeout(r, 1500));
+                        res = await fetch('https://last-dataset.vercel.app/api/zone/status?zoneId=red&team=' + encodeURIComponent(tid));
+                        if (res.ok) data = await res.json();
+                    }
                     if (!data.unlocked) {
                         showLockedBypassOverlay(data.prerequisite || 'orange');
                     }
@@ -3933,14 +3957,19 @@
             const tid = getResolvedTeamId();
             if (!tid) return;
 
-            const serviceToken = "the-last-dataset-2026-production-service-token-manipal";
+            const lt = getResolvedLaunchToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(lt ? { 'Authorization': 'Bearer ' + lt, 'x-launch-token': lt } : {})
+            };
+            const payload = { teamId: tid, ctfId: 'red-zone', zoneId: 'red', launchToken: lt || undefined };
 
             // 1. Authoritative Red Zone solve and 800-point award via Central Hub
             try {
                 await fetch('https://last-dataset.vercel.app/api/integrations/zone-ctf-complete', {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + serviceToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ teamId: tid, ctfId: 'red-zone', zoneId: 'red' })
+                    headers: headers,
+                    body: JSON.stringify(payload)
                 });
             } catch (e) {
                 console.warn("Central Hub zone-ctf-complete notice error:", e);
@@ -3950,8 +3979,8 @@
             try {
                 await fetch('https://last-dataset.vercel.app/api/integrations/red-complete', {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + serviceToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ teamId: tid, delegateId: 'OPERATOR' })
+                    headers: headers,
+                    body: JSON.stringify({ teamId: tid, delegateId: 'OPERATOR', launchToken: lt || undefined })
                 });
             } catch (err) {
                 console.warn("Central Hub integrations/red-complete error:", err);
@@ -3960,8 +3989,8 @@
             try {
                 await fetch('https://last-dataset.vercel.app/api/red/complete', {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + serviceToken, 'Content-Type': 'application/json', 'x-team-id': tid },
-                    body: JSON.stringify({ teamId: tid, delegateId: 'OPERATOR' })
+                    headers: { ...headers, 'x-team-id': tid },
+                    body: JSON.stringify({ teamId: tid, delegateId: 'OPERATOR', launchToken: lt || undefined })
                 });
             } catch (err) {
                 console.warn("Central Hub red/complete error:", err);

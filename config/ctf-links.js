@@ -51,7 +51,7 @@ const CTF_CONFIG = Object.freeze([
         location: 'RELAY DISTRICT',
         zone: 'zone_bridge',
         devUrl: 'http://127.0.0.1:8080',   // local development only
-        url: ''                            // Red Zone CTF 1 — PRALAYA Archive Terminal (public address)
+        url: 'https://red-zone-ctf1.onrender.com/' // Red Zone CTF 1 — PRALAYA Archive Terminal (public address)
     },
     {
         id: 2,
@@ -59,7 +59,7 @@ const CTF_CONFIG = Object.freeze([
         location: 'ARCHIVE PRECINCT',
         zone: 'zone_vault',
         devUrl: 'http://127.0.0.1:8081',   // local development only
-        url: ''                            // Red Zone CTF 2 — THE SILENT EDIT (public address)
+        url: 'https://red-zone-ctf2.onrender.com/' // Red Zone CTF 2 — THE SILENT EDIT (public address)
     },
     {
         id: 3,
@@ -67,7 +67,7 @@ const CTF_CONFIG = Object.freeze([
         location: 'RESEARCH BLOCK',
         zone: 'zone_ai',
         devUrl: 'http://127.0.0.1:8082',   // local development only
-        url: ''                            // Red Zone CTF 3 — METADATA FORENSICS (public address)
+        url: 'https://red-zone-ctf3.onrender.com/' // Red Zone CTF 3 — METADATA FORENSICS (public address)
     },
     {
         id: 4,
@@ -75,7 +75,7 @@ const CTF_CONFIG = Object.freeze([
         location: 'CENTRAL PLAZA',
         zone: 'zone_atrium',
         devUrl: 'http://127.0.0.1:8090',   // local development only
-        url: ''                            // CTF 4 — THE DEADLOCK ENGINE (public address)
+        url: 'https://bonus-ctf4.onrender.com/' // CTF 4 — THE DEADLOCK ENGINE (public address)
     },
     {
         id: 5,
@@ -83,7 +83,7 @@ const CTF_CONFIG = Object.freeze([
         location: 'BIO-QUARANTINE',
         zone: 'zone_bio',
         devUrl: 'http://127.0.0.1:8083',   // local development only
-        url: ''                            // CTF 5 — THE LAST GATEKEEPER (public address)
+        url: 'https://red-zone-ctf5.onrender.com/' // CTF 5 — THE LAST GATEKEEPER (public address)
     }
 ]);
 

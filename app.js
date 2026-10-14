@@ -37,6 +37,18 @@
         } catch (e) { return ''; }
     }
 
+    function getResolvedLaunchToken() {
+        try {
+            const p = new URLSearchParams(window.location.search);
+            const lt = (p.get('launchToken') || sessionStorage.getItem('tld_launch_token') || localStorage.getItem('tld_launch_token') || '').trim();
+            if (lt) {
+                try { sessionStorage.setItem('tld_launch_token', lt); } catch (_) {}
+                return lt;
+            }
+        } catch (_) {}
+        return '';
+    }
+
     const resolvedTeam = getResolvedTeamId();
     const STORAGE_KEY = resolvedTeam ? ('MANU_PROTOCOL_SAVE_' + resolvedTeam) : 'MANU_PROTOCOL_SAVE_V1';
 
@@ -686,27 +698,26 @@
     async function initiateFinalEvacuation() {
         window.MANU_AUDIO.playVictoryFanfare();
         const tid = getResolvedTeamId();
+        const lt = getResolvedLaunchToken();
         if (tid) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(lt ? { 'Authorization': 'Bearer ' + lt, 'x-launch-token': lt } : {}),
+                'x-team-id': tid
+            };
+            const body = JSON.stringify({ teamId: tid, launchToken: lt || undefined });
             try {
                 await fetch('/api/red/complete', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal',
-                        'x-team-id': tid
-                    },
-                    body: JSON.stringify({ teamId: tid })
+                    headers: headers,
+                    body: body
                 });
             } catch (e) {
                 try {
                     await fetch('https://last-dataset.vercel.app/api/red/complete', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal',
-                            'x-team-id': tid
-                        },
-                        body: JSON.stringify({ teamId: tid })
+                        headers: headers,
+                        body: body
                     });
                 } catch (err) {}
             }
