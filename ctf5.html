@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED ZONE // CTF 05 — THE LAST GATEKEEPER</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg-dark: #05070f;
+    --bg-panel: #0d121f;
+    --bg-card: #151d30;
+    --border: #1e293b;
+    --red: #ff2a5f;
+    --cyan: #00e5ff;
+    --green: #00e676;
+    --yellow: #ffd600;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --font: 'JetBrains Mono', 'Segoe UI Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: rgba(13, 18, 31, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .badge { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .brand-title { font-weight: 900; letter-spacing: 1.5px; font-size: 16px; color: #fff; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--red); color: #fff; background: rgba(255, 42, 95, 0.1); }
+  .btn-red { background: var(--red); color: #fff; border-color: var(--red); font-weight: 800; }
+  .btn-red:hover { background: #ff477e; box-shadow: 0 0 16px rgba(255, 42, 95, 0.4); }
+  .btn-green { background: var(--green); color: #020617; border-color: var(--green); font-weight: 800; }
+  .btn-green:hover { background: #4ade80; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
+
+  main { flex: 1; padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--red);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .quote-box {
+    background: rgba(255, 42, 95, 0.04);
+    border-left: 3px solid var(--red);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .tag-green { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
+  .tag-red { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); }
+  .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  .code-box {
+    background: #060a14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 12px;
+    color: #38bdf8;
+    overflow-x: auto;
+  }
+
+  .flag-box {
+    background: #020617;
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 0 24px rgba(0, 230, 118, 0.2);
+  }
+  .flag-box.show { display: flex; }
+  .flag-display {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 1px;
+    word-break: break-all;
+    background: rgba(0, 230, 118, 0.1);
+    padding: 10px 14px;
+    border-radius: 6px;
+    user-select: all;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="badge">CTF 05 · FINAL GATE</span>
+    <span class="brand-title">THE LAST GATEKEEPER // SPLIT SEAL</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/datasets/ctf5-gatekeeper.zip" download="ctf5-gatekeeper.zip" class="btn">📥 DOWNLOAD GATEKEEPER PACKAGE (.ZIP)</a>
+    <a href="/" class="btn btn-red">← RETURN TO RED ZONE</a>
+  </div>
+</header>
+
+<main>
+  <div class="grid-2">
+    <!-- STORY & INCIDENT REPORT -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>BIOARCHIVE // RED-ZONE-04</span>
+        <span class="tag tag-red">THE FINAL SEAL</span>
+      </div>
+
+      <div class="quote-box">
+        <strong>Mission Objective:</strong><br>
+        <em>"The old gatekeeper did not keep the final fragment in one place. The live process now demands a witness, then hides the continuation route behind a second integrity check."</em>
+        <br><br>
+        <strong>Category:</strong> Binary Exploitation / Reverse Engineering<br>
+        <strong>Target:</strong> <code>gatekeeper</code> ELF (x86-64)
+      </div>
+
+      <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid var(--border); padding: 12px; border-radius: 8px; font-size: 12px;">
+        <b style="color: var(--cyan);">BINARY REVERSE ENGINEERING INSIGHTS:</b>
+        <ul style="margin-left: 18px; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; color: #94a3b8;">
+          <li><b>Format String Surface:</b> Archivist ID prompt parses input for witness leak.</li>
+          <li><b>Session Witness:</b> <code>attestation fragment</code> combined with stack secret.</li>
+          <li><b>Continuation Route:</b> Function at <code>0x14af</code> verifies witness, then runs byte decryption loop:</li>
+        </ul>
+        <pre class="code-box" style="margin-top: 8px;">1540: movzbl (%rcx,%rax,1),%edx   # 29 cipher bytes at 0x2460
+1544: xor    $0x5a,%edx           # XOR key: 0x5a
+1547: mov    %dl,-0x30(%rbp,%rax,1)
+154f: cmp    $0x1d,%rax           # 29 bytes
+1553: jne    1540
+1575: printf("FLAG: %s\n", decrypted_flag)</pre>
+      </div>
+    </div>
+
+    <!-- GATEKEEPER AUTHENTICATION CONSOLE -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>GATEKEEPER BREACH CONSOLE</span>
+        <span class="tag tag-green">READY</span>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-dim);">
+        Authenticate the split seal session to extract the final bioarchive fragment:
+      </p>
+
+      <div style="background: #02040a; border: 1px dashed var(--red); padding: 16px; border-radius: 8px; font-family: monospace; font-size: 12px; line-height: 1.8;">
+        <span style="color: #64748b;">==============================================</span><br>
+        <span style="color: var(--cyan);"> PRALAYA // RED-ZONE-04 // SPLIT SEAL</span><br>
+        <span style="color: #64748b;">==============================================</span><br>
+        <span style="color: var(--yellow);">&gt; Archivist identification: ATT-04-VERIFIED</span><br>
+        <span style="color: var(--green);">&gt; [gatekeeper] witness accepted.</span><br>
+        <span style="color: var(--cyan);">&gt; [gatekeeper] recovery memo recorded.</span><br>
+        <span style="color: var(--green);">&gt; [gate] ROUTE AUTHENTICATED.</span>
+      </div>
+
+      <button class="btn btn-green" id="btn-breach" style="width: 100%;">⚡ AUTHENTICATE ROUTE & EXTRACT FINAL FRAGMENT</button>
+
+      <!-- FLAG REWARD BOX -->
+      <div class="flag-box" id="flag-box">
+        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 GATEKEEPER BYPASSED // FINAL FRAGMENT RECOVERED:</span>
+        <div class="flag-display" id="flag-text">RZ{split_seal_final_7d3a91c2}</div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY FINAL FLAG</button>
+          <a href="/" class="btn" style="border-color: var(--green);">RETURN TO GAME TERMINAL →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.getElementById('btn-breach').onclick = () => {
+  document.getElementById('flag-box').classList.add('show');
+};
+
+document.getElementById('btn-copy-flag').onclick = () => {
+  const f = document.getElementById('flag-text').innerText;
+  navigator.clipboard.writeText(f);
+  alert('Final flag copied to clipboard!\n\nSubmit it at the Bioarchive terminal in the Red Zone map to unlock the Final Exit.');
+};
+</script>
+</body>
+</html>

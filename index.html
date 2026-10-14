@@ -906,7 +906,8 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button class="flag-submit-btn" id="modal-open-ctf" style="display: none">ACCESS TERMINAL</button>
+                    <button class="flag-submit-btn" id="modal-open-ctf" style="display: none">OPEN IN-SITE CTF WORKSTATION</button>
+                    <a class="flag-submit-btn secondary" id="modal-download-data" style="display: none; text-decoration: none;" download>DOWNLOAD CHALLENGE DATA</a>
                     <button class="flag-submit-btn secondary" id="modal-reward-btn" style="display: none">DOWNLOAD CHILD DATASET</button>
                     <button class="flag-submit-btn exit-btn" id="modal-exit-btn" style="display: none">EXIT THE MAP</button>
                     <a href="https://red-purple-slideshow.vercel.app/" target="_blank" rel="noopener noreferrer" class="flag-submit-btn purple-btn" id="modal-purple-btn" style="display: none">MOVE TO PURPLE ZONE</a>
@@ -3207,6 +3208,8 @@
             btnVerify.style.display = 'none';
             btnReward.style.display = 'none';
             btnExit.style.display = 'none';
+            const btnDownloadInit = document.getElementById('modal-download-data');
+            if (btnDownloadInit) btnDownloadInit.style.display = 'none';
             const btnPurpleModal = document.getElementById('modal-purple-btn');
             if (btnPurpleModal) btnPurpleModal.style.display = 'none';
             btnReturn.style.display = '';
@@ -3270,19 +3273,78 @@
                 status.innerText = allDone
                     ? '🏆 THE LAST DATASET — all data fragments recovered.'
                     : '✅ DATA FRAGMENT ' + pad(n) + ' VERIFIED — CTF-' + pad(n) + ' COMPLETE.';
-            } else if (n) {
-                // ---- READY (spec §5) ----
-                code.innerText = [
+                const CTF_DOSSIERS = {
+                    1: [
+                        '▶ PRALAYA ARCHIVE // RELAY STATION (CTF-01)',
+                        'STATUS: IN-SITE WORKSTATION READY (ZERO DEPENDENCY ON RENDER)',
+                        'OBJECTIVE: Attest the 12 authentic records in PARENT_FINAL.csv.',
+                        'RULE: Discard falsified record S021 (Falsified_To_Protect_Flag=True).',
+                        'DATASET: PARENT_FINAL.csv available on-site via button below.',
+                        'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf1.html.'
+                    ].join('\n'),
+                    2: [
+                        '▶ SANCTUARY ARCHIVE // THE SILENT EDIT (CTF-02)',
+                        'STATUS: IN-SITE WORKSTATION READY (ZERO DEPENDENCY ON RENDER)',
+                        'OBJECTIVE: Discover off-record edits S033 & S110 and their logged triad members.',
+                        'KEY FORMAT: <silent_ids>|<touched_triad_ids>|<evidence_tally>',
+                        'DATASET: PARENT_FINAL.csv available on-site via button below.',
+                        'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf2.html.'
+                    ].join('\n'),
+                    3: [
+                        '▶ CHILD DATASET // METADATA FORENSICS (CTF-03)',
+                        'STATUS: IN-SITE WORKSTATION READY (ZERO DEPENDENCY ON RENDER)',
+                        'OBJECTIVE: Apply Rules III (<0.500 auth), IV (>7.5d audit gap), V (>=2 blanks & altered).',
+                        'KEY FORMAT: <rule_3_ids>|<rule_4_ids>|<rule_5_ids>',
+                        'DATASETS: PARENT_FINAL.csv & CHILD_FINAL.csv available on-site via buttons below.',
+                        'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf3.html.'
+                    ].join('\n'),
+                    4: [
+                        '▶ CENTRAL ATRIUM // THE DEADLOCK ENGINE (CTF-04 · BONUS)',
+                        'STATUS: OPTIONAL BONUS PROTOCOL READY (GATES NOTHING)',
+                        'OBJECTIVE: Quiesce resource circular wait deadlock between P2 and P4.',
+                        'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf4.html.'
+                    ].join('\n'),
+                    5: [
+                        '▶ BIOARCHIVE // THE LAST GATEKEEPER (CTF-05 · FINAL GATE)',
+                        'STATUS: IN-SITE REVERSE ENGINEERING WORKBENCH READY (ZERO DEPENDENCY ON RENDER)',
+                        'OBJECTIVE: Inspect gatekeeper ELF, pass split-seal integrity check, extract master flag.',
+                        'PACKAGE: gatekeeper executable, challenge, server & writeup available below.',
+                        'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf5.html.'
+                    ].join('\n')
+                };
+
+                code.innerText = CTF_DOSSIERS[n] || [
                     '> CONNECTION ESTABLISHED',
                     '> ' + z.title + ' NODE DETECTED',
                     '> DATA FRAGMENT AVAILABLE',
                     '',
                     'CTF-' + pad(n) + ' // ' + z.title
                 ].join('\n');
+
+                const btnDownload = document.getElementById('modal-download-data');
+                if (btnDownload) {
+                    if (n === 1 || n === 2) {
+                        btnDownload.href = '/datasets/PARENT_FINAL.csv';
+                        btnDownload.innerText = '📥 DOWNLOAD PARENT DATASET';
+                        btnDownload.style.display = 'inline-flex';
+                    } else if (n === 3) {
+                        btnDownload.href = '/datasets/CHILD_FINAL.csv';
+                        btnDownload.innerText = '📥 DOWNLOAD CHILD DATASET';
+                        btnDownload.style.display = 'inline-flex';
+                    } else if (n === 5) {
+                        btnDownload.href = '/datasets/ctf5-gatekeeper.zip';
+                        btnDownload.innerText = '📥 DOWNLOAD GATEKEEPER PKG (.ZIP)';
+                        btnDownload.style.display = 'inline-flex';
+                    } else {
+                        btnDownload.style.display = 'none';
+                    }
+                }
+
                 status.className = 'flag-status';
                 status.innerText = n === 4
-                    ? 'OPTIONAL BONUS NODE — open it, solve it, and submit the flag it produces. It gates nothing.'
-                    : 'Open the node, solve the challenge, then submit the flag it produced here for verification.';
+                    ? 'OPTIONAL BONUS NODE — open in-site workstation, solve it, and submit the flag it produces. It gates nothing.'
+                    : 'Open the in-site workstation (/ctf' + n + '.html), solve the challenge, then submit the flag below.';
+                btnOpen.innerText = 'OPEN IN-SITE CTF WORKSTATION';
                 btnOpen.style.display = '';
                 btnVerify.style.display = '';
                 btnVerify.disabled = false;
@@ -3291,6 +3353,8 @@
                 flagGroup.classList.add('open');
                 if (flagInput) { flagInput.value = ''; flagInput.disabled = false; }
             } else {
+                const btnDownload = document.getElementById('modal-download-data');
+                if (btnDownload) btnDownload.style.display = 'none';
                 code.innerText = 'NO DATA';
                 status.className = 'flag-status';
                 status.innerText = '';

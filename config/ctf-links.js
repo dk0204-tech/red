@@ -50,40 +50,40 @@ const CTF_CONFIG = Object.freeze([
         name: 'GHOST SIGNAL',
         location: 'RELAY DISTRICT',
         zone: 'zone_bridge',
-        devUrl: 'http://127.0.0.1:8080',   // local development only
-        url: 'https://red-zone-ctf1.onrender.com/' // Red Zone CTF 1 — PRALAYA Archive Terminal (public address)
+        devUrl: '/ctf1.html',
+        url: '/ctf1.html'
     },
     {
         id: 2,
         name: 'SANCTUARY ARCHIVE',
         location: 'ARCHIVE PRECINCT',
         zone: 'zone_vault',
-        devUrl: 'http://127.0.0.1:8081',   // local development only
-        url: 'https://red-zone-ctf2.onrender.com/' // Red Zone CTF 2 — THE SILENT EDIT (public address)
+        devUrl: '/ctf2.html',
+        url: '/ctf2.html'
     },
     {
         id: 3,
         name: 'CHILD DATASET',
         location: 'RESEARCH BLOCK',
         zone: 'zone_ai',
-        devUrl: 'http://127.0.0.1:8082',   // local development only
-        url: 'https://red-zone-ctf3.onrender.com/' // Red Zone CTF 3 — METADATA FORENSICS (public address)
+        devUrl: '/ctf3.html',
+        url: '/ctf3.html'
     },
     {
         id: 4,
         name: 'CENTRAL ATRIUM',
         location: 'CENTRAL PLAZA',
         zone: 'zone_atrium',
-        devUrl: 'http://127.0.0.1:8090',   // local development only
-        url: 'https://bonus-ctf4.onrender.com/' // CTF 4 — THE DEADLOCK ENGINE (public address)
+        devUrl: '/ctf4.html',
+        url: '/ctf4.html'
     },
     {
         id: 5,
         name: 'BIOARCHIVE',
         location: 'BIO-QUARANTINE',
         zone: 'zone_bio',
-        devUrl: 'http://127.0.0.1:8083',   // local development only
-        url: 'https://red-zone-ctf5.onrender.com/' // CTF 5 — THE LAST GATEKEEPER (public address)
+        devUrl: '/ctf5.html',
+        url: '/ctf5.html'
     }
 ]);
 
@@ -104,6 +104,7 @@ function ctfIsLocalPage() {
 /* True for loopback / private-network targets. The launcher refuses these for
    any page that is not itself local, whatever a config value or a server says. */
 function ctfIsLocalAddress(url) {
+    if (typeof url === 'string' && url.startsWith('/')) return false; // in-site relative path
     try {
         const h = new URL(String(url), (typeof location !== 'undefined' && location.href) || 'http://localhost/').hostname.toLowerCase();
         return h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0' ||
@@ -119,9 +120,11 @@ function ctfIsLocalAddress(url) {
    for a deployed page. */
 function ctfEntryUrl(entry) {
     if (!entry) return null;
+    const url = entry.url || entry.devUrl || null;
+    if (!url) return null;
+    if (url.startsWith('/')) return url;
     if (ctfIsLocalPage()) return entry.devUrl || entry.url || null;
-    const url = entry.url || null;
-    return (url && ctfIsLocalAddress(url)) ? null : url;
+    return ctfIsLocalAddress(url) ? null : url;
 }
 
 /* -------------------------------------------------------- In-game text ---- */
@@ -130,11 +133,11 @@ const CTF_MSG_BLOCKED = '🚫 CTF CHANNEL BLOCKED — Allow pop-ups to access th
 
 /* ============================== Validation =============================== */
 
-/* A URL is usable only when it is a real http(s) address and is not a
+/* A URL is usable only when it is a real http(s) address or in-site relative path and is not a
    placeholder. Malformed values are treated as "unavailable", never fatal. */
 function isValidCTFUrl(url) {
     return typeof url === 'string' &&
-           /^https?:\/\//i.test(url) &&
+           (/^https?:\/\//i.test(url) || url.startsWith('/')) &&
            !url.includes('PLACEHOLDER');
 }
 

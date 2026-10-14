@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED ZONE // CTF 02 — THE SILENT EDIT</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg-dark: #05070f;
+    --bg-panel: #0d121f;
+    --bg-card: #151d30;
+    --border: #1e293b;
+    --red: #ff2a5f;
+    --cyan: #00e5ff;
+    --green: #00e676;
+    --yellow: #ffd600;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --font: 'JetBrains Mono', 'Segoe UI Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: rgba(13, 18, 31, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .badge { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .brand-title { font-weight: 900; letter-spacing: 1.5px; font-size: 16px; color: #fff; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--red); color: #fff; background: rgba(255, 42, 95, 0.1); }
+  .btn-red { background: var(--red); color: #fff; border-color: var(--red); font-weight: 800; }
+  .btn-red:hover { background: #ff477e; box-shadow: 0 0 16px rgba(255, 42, 95, 0.4); }
+  .btn-green { background: var(--green); color: #020617; border-color: var(--green); font-weight: 800; }
+  .btn-green:hover { background: #4ade80; color: #020617; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
+
+  main { flex: 1; padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--red);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .quote-box {
+    background: rgba(255, 42, 95, 0.04);
+    border-left: 3px solid var(--red);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .tag-green { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
+  .tag-red { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); }
+  .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  /* Interactive Terminal */
+  .terminal-box {
+    background: #02040a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 420px;
+    overflow: hidden;
+  }
+  .term-header {
+    background: #090e1a;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+  .term-output {
+    flex: 1;
+    padding: 14px;
+    overflow-y: auto;
+    font-size: 12px;
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .term-line { white-space: pre-wrap; word-break: break-all; }
+  .term-line.cmd { color: var(--cyan); }
+  .term-line.info { color: #94a3b8; }
+  .term-line.success { color: var(--green); }
+  .term-line.error { color: var(--red); }
+
+  .term-input-row {
+    display: flex;
+    background: #070c18;
+    border-top: 1px solid var(--border);
+    padding: 8px 12px;
+    align-items: center;
+    gap: 8px;
+  }
+  .term-prompt { color: var(--red); font-weight: 800; font-size: 13px; }
+  .term-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .flag-box {
+    background: #020617;
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 0 24px rgba(0, 230, 118, 0.2);
+  }
+  .flag-box.show { display: flex; }
+  .flag-display {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 1px;
+    word-break: break-all;
+    background: rgba(0, 230, 118, 0.1);
+    padding: 10px 14px;
+    border-radius: 6px;
+    user-select: all;
+  }
+
+  .quick-cmds { display: flex; gap: 8px; flex-wrap: wrap; }
+  .qbtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .qbtn:hover { border-color: var(--cyan); color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="badge">CTF 02 · SANCTUARY ARCHIVE</span>
+    <span class="brand-title">THE SILENT EDIT // NODE SEC-00</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/datasets/PARENT_FINAL.csv" download="PARENT_FINAL.csv" class="btn">📥 DOWNLOAD PARENT DATASET</a>
+    <a href="/" class="btn btn-red">← RETURN TO RED ZONE</a>
+  </div>
+</header>
+
+<main>
+  <div class="grid-2">
+    <!-- MISSION BRIEFING & PROTOCOL -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>MISSION BRIEFING // THE THREE LAYERS</span>
+        <span class="tag tag-red">SECTOR SEC-00</span>
+      </div>
+      <div class="quote-box">
+        <strong>The SITREP:</strong><br>
+        <em>"Six sectors went dark in a night; only node SEC-00 answers, and it answers wrong. PRALAYA edited the records before the end. Some edits it logged. Some it did not — and the ones it did not log are the ones that matter."</em>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+        <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid var(--border); padding: 10px; border-radius: 6px;">
+          <b style="color: var(--cyan);">LAYER 1 — SILENT EDITS:</b><br>
+          Records whose <code>PRALAYA_Alteration_Type == "none"</code> but whose <code>Signature_Valid_Flag == "False"</code>.
+          <span style="color: var(--yellow);">Found: S033, S110</span>
+        </div>
+        <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid var(--border); padding: 10px; border-radius: 6px;">
+          <b style="color: var(--cyan);">LAYER 2 — POLICY-TOUCHED TRIAD:</b><br>
+          Every record has 3 <code>Relationship_History</code> links. Keep the ones PRALAYA <i>did</i> log alteration for (<code>PRALAYA_Alteration_Type != "none"</code>).
+          <span style="color: var(--yellow);">Found: S005, S044, S081, S112</span>
+        </div>
+        <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid var(--border); padding: 10px; border-radius: 6px;">
+          <b style="color: var(--cyan);">LAYER 3 — EVIDENCE TALLY:</b><br>
+          Sum of <code>Evidence_Fragment_Count</code> over those touched triad records.
+          <span style="color: var(--yellow);">Tally = 3 + 3 + 3 + 3 = 12</span>
+        </div>
+      </div>
+
+      <div style="background: #030712; border: 1px dashed var(--red); padding: 12px; border-radius: 8px;">
+        <span style="color: var(--red); font-weight: 700;">RECONSTRUCTION KEY FORMAT:</span>
+        <pre style="margin-top: 6px; font-size: 12px; color: var(--cyan);">MATERIAL = "&lt;silent_ids&gt;|&lt;touched_triad_ids&gt;|&lt;tally&gt;"
+FLAG     = "RZ{" + sha256(MATERIAL)[0..31] + "}"</pre>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-red" id="btn-auto-solve" style="flex: 1;">⚡ SOLVE VIA DATASET & DERIVE FLAG</button>
+      </div>
+
+      <!-- FLAG REWARD BOX -->
+      <div class="flag-box" id="flag-box">
+        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 KEY ASSEMBLED // FRAGMENT 02 DERIVED:</span>
+        <div class="flag-display" id="flag-text">RZ{...}</div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY FLAG TO CLIPBOARD</button>
+          <a href="/" class="btn btn-red">RETURN TO GAME TERMINAL →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE TERMINAL -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>PRALAYA ARCHIVE CONSOLE</span>
+        <span class="tag tag-green">ONLINE</span>
+      </div>
+
+      <div class="quick-cmds">
+        <span style="font-size: 11px; color: var(--text-dim); align-self: center;">Quick commands:</span>
+        <button class="qbtn" onclick="runCmd('help')">help</button>
+        <button class="qbtn" onclick="runCmd('brief')">brief</button>
+        <button class="qbtn" onclick="runCmd('silent')">silent</button>
+        <button class="qbtn" onclick="runCmd('triad S033')">triad S033</button>
+        <button class="qbtn" onclick="runCmd('triad S110')">triad S110</button>
+        <button class="qbtn" onclick="runCmd('assemble')">assemble</button>
+      </div>
+
+      <div class="terminal-box">
+        <div class="term-header">
+          <span>PRALAYA // NODE SEC-00 INTERACTIVE SHELL</span>
+          <span>BUFFER: ACTIVE</span>
+        </div>
+        <div class="term-output" id="term-out">
+          <div class="term-line info">PRALAYA ARCHIVE TERMINAL — NODE SEC-00</div>
+          <div class="term-line info">Type "help" for a list of available archive forensics commands.</div>
+        </div>
+        <form class="term-input-row" id="term-form" onsubmit="handleInput(event)">
+          <span class="term-prompt">redzone&gt;</span>
+          <input type="text" class="term-input" id="term-in" placeholder="type a command..." autocomplete="off">
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+let parentData = [];
+
+async function loadData() {
+  try {
+    const res = await fetch('/datasets/parent_data.json');
+    if (res.ok) {
+      parentData = await res.json();
+    } else {
+      const csvRes = await fetch('/datasets/PARENT_FINAL.csv');
+      const text = await csvRes.text();
+      parentData = parseCsvText(text);
+    }
+  } catch (e) {
+    console.warn('Dataset fetch failed:', e);
+  }
+}
+
+function parseCsvText(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(l => {
+    const parts = l.split(',');
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (parts[i] || '').trim().replace(/^"|"$/g, ''));
+    return obj;
+  });
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function logLine(text, cls = '') {
+  const out = document.getElementById('term-out');
+  const d = document.createElement('div');
+  d.className = 'term-line ' + cls;
+  d.textContent = text;
+  out.appendChild(d);
+  out.scrollTop = out.scrollHeight;
+}
+
+function handleInput(e) {
+  e.preventDefault();
+  const input = document.getElementById('term-in');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  runCmd(val);
+}
+
+async function runCmd(cmd) {
+  logLine('redzone> ' + cmd, 'cmd');
+  const parts = cmd.trim().split(/\s+/);
+  const c = parts[0].toLowerCase();
+  const arg = parts.slice(1).join(' ').trim();
+
+  if (c === 'help') {
+    logLine([
+      'COMMANDS:',
+      '  brief             - read intercepted ops log',
+      '  silent            - scan for unlogged altered records (Layer 1)',
+      '  triad <ID>        - inspect triad relationships of a sanctuary ID',
+      '  inspect <ID>      - dump record details',
+      '  protocol          - show key format specification',
+      '  assemble          - compute the 3-layer material and recover flag',
+      '  clear             - clear terminal output'
+    ].join('\n'), 'info');
+  } else if (c === 'clear') {
+    document.getElementById('term-out').innerHTML = '';
+  } else if (c === 'brief') {
+    logLine([
+      'INTERCEPTED LOG 05:02 UTC // OPS:',
+      '  "PRALAYA edited the records before the end.',
+      '   Find the records PRALAYA altered without logging (alteration=none, sig=false).',
+      '   Follow each one\'s three linked records; keep the links PRALAYA DID log.',
+      '   Tally their evidence fragments, build the material, hash it."',
+    ].join('\n'), 'info');
+  } else if (c === 'silent') {
+    const silent = parentData.filter(r => 
+      String(r.PRALAYA_Alteration_Type).trim() === 'none' &&
+      String(r.Signature_Valid_Flag).trim().toLowerCase() === 'false'
+    );
+    if (silent.length === 0) {
+      logLine('No silent edits found or dataset still loading. Try again in a moment.', 'error');
+    } else {
+      logLine(`LAYER 1 SCAN COMPLETE: Found ${silent.length} off-record edits:`, 'success');
+      silent.forEach(r => {
+        logLine(`  [SILENT EDIT] ID: ${r.Sanctuary_ID} | Name: ${r.Original_Name} | Alteration: ${r.PRALAYA_Alteration_Type} | Sig: ${r.Signature_Valid_Flag}`);
+      });
+      logLine('Silent IDs: ' + silent.map(r => r.Sanctuary_ID).sort().join(', '), 'info');
+    }
+  } else if (c === 'triad') {
+    const id = arg.toUpperCase();
+    const r = parentData.find(x => x.Sanctuary_ID === id);
+    if (!r) {
+      logLine(`Sanctuary ID "${id}" not found.`, 'error');
+      return;
+    }
+    const links = (r.Relationship_History || '').split(';').map(s => s.trim()).filter(Boolean);
+    logLine(`Triad relationships for ${id}: [${links.join(', ')}]`, 'info');
+    links.forEach(lid => {
+      const lr = parentData.find(x => x.Sanctuary_ID === lid);
+      if (lr) {
+        const touched = String(lr.PRALAYA_Alteration_Type).trim() !== 'none';
+        logLine(`  -> ${lid}: Alteration: "${lr.PRALAYA_Alteration_Type}" | Touched: ${touched ? 'YES (KEEP)' : 'NO (DISCARD)'} | Evidence: ${lr.Evidence_Fragment_Count}`, touched ? 'success' : 'info');
+      }
+    });
+  } else if (c === 'inspect') {
+    const id = arg.toUpperCase();
+    const r = parentData.find(x => x.Sanctuary_ID === id);
+    if (!r) { logLine(`Sanctuary ID "${id}" not found.`, 'error'); return; }
+    logLine(JSON.stringify(r, null, 2), 'info');
+  } else if (c === 'protocol') {
+    logLine([
+      'MATERIAL = "<silent_ids,asc,comma>|<touched_ids,asc,comma>|<tally>"',
+      'FLAG     = "RZ{" + sha256(MATERIAL)[0..31] + "}"'
+    ].join('\n'), 'info');
+  } else if (c === 'assemble' || c === 'solve') {
+    await solveAndDisplay();
+  } else {
+    logLine(`Unknown command: "${c}". Type "help" for options.`, 'error');
+  }
+}
+
+async function solveAndDisplay() {
+  const silent = parentData
+    .filter(r => String(r.PRALAYA_Alteration_Type).trim() === 'none' && String(r.Signature_Valid_Flag).trim().toLowerCase() === 'false')
+    .map(r => String(r.Sanctuary_ID).trim().toUpperCase()).sort();
+
+  const byId = new Map(parentData.map(r => [String(r.Sanctuary_ID).trim().toUpperCase(), r]));
+
+  const triad = [...new Set(
+    silent.flatMap(id => {
+      const r = byId.get(id);
+      return r ? String(r.Relationship_History).split(';').map(s => s.trim()).filter(Boolean) : [];
+    })
+  )].sort();
+
+  const touched = triad.filter(id => {
+    const r = byId.get(id);
+    return r && String(r.PRALAYA_Alteration_Type).trim() !== 'none';
+  }).sort();
+
+  const tally = touched.reduce((sum, id) => sum + (Number(byId.get(id).Evidence_Fragment_Count) || 0), 0);
+
+  const material = [silent.join(','), touched.join(','), String(tally)].join('|');
+  const digest = await sha256(material);
+  const flag = 'RZ{' + digest.slice(0, 32) + '}';
+
+  logLine('----------------------------------------', 'info');
+  logLine(`LAYER 1 (Silent):  ${silent.join(',')}`, 'success');
+  logLine(`LAYER 2 (Touched): ${touched.join(',')}`, 'success');
+  logLine(`LAYER 3 (Tally):   ${tally}`, 'success');
+  logLine(`MATERIAL:          ${material}`, 'info');
+  logLine(`FLAG:              ${flag}`, 'success');
+  logLine('----------------------------------------', 'info');
+
+  document.getElementById('flag-text').innerText = flag;
+  document.getElementById('flag-box').classList.add('show');
+}
+
+document.getElementById('btn-auto-solve').onclick = solveAndDisplay;
+
+document.getElementById('btn-copy-flag').onclick = () => {
+  const f = document.getElementById('flag-text').innerText;
+  navigator.clipboard.writeText(f);
+  alert('Flag copied to clipboard!\n\nSubmit it at the terminal in the Red Zone map.');
+};
+
+loadData();
+</script>
+</body>
+</html>

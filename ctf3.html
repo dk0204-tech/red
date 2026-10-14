@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED ZONE // CTF 03 — METADATA FORENSICS</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg-dark: #05070f;
+    --bg-panel: #0d121f;
+    --bg-card: #151d30;
+    --border: #1e293b;
+    --green: #00e676;
+    --cyan: #00e5ff;
+    --red: #ff2a5f;
+    --yellow: #ffd600;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --font: 'JetBrains Mono', 'Segoe UI Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: rgba(13, 18, 31, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .badge { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .brand-title { font-weight: 900; letter-spacing: 1.5px; font-size: 16px; color: #fff; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--green); color: #fff; background: rgba(0, 230, 118, 0.1); }
+  .btn-green { background: var(--green); color: #020617; border-color: var(--green); font-weight: 800; }
+  .btn-green:hover { background: #4ade80; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
+
+  main { flex: 1; padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--green);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .quote-box {
+    background: rgba(0, 230, 118, 0.04);
+    border-left: 3px solid var(--green);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .tag-green { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
+  .tag-cyan { background: rgba(0, 229, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan); }
+  .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  .rules-grid { display: flex; flex-direction: column; gap: 12px; }
+  .rule-card {
+    background: #090e1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rule-head { display: flex; justify-content: space-between; font-weight: 700; font-size: 12px; }
+
+  .flag-box {
+    background: #020617;
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 0 24px rgba(0, 230, 118, 0.2);
+  }
+  .flag-box.show { display: flex; }
+  .flag-display {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 1px;
+    word-break: break-all;
+    background: rgba(0, 230, 118, 0.1);
+    padding: 10px 14px;
+    border-radius: 6px;
+    user-select: all;
+  }
+
+  .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .tab-btn.active { background: var(--bg-card); color: var(--green); }
+
+  .table-wrap { overflow-x: auto; max-height: 440px; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+  th { background: #111827; padding: 10px 12px; color: var(--text-dim); position: sticky; top: 0; border-bottom: 1px solid var(--border); font-weight: 700; }
+  td { padding: 8px 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+  tr:hover td { background: rgba(0, 230, 118, 0.05); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="badge">CTF 03 · CHILD DATASET</span>
+    <span class="brand-title">NODE 07 RECOVERY ARCHIVE // METADATA FORENSICS</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/datasets/CHILD_FINAL.csv" download="CHILD_FINAL.csv" class="btn">📥 CHILD DATASET</a>
+    <a href="/datasets/PARENT_FINAL.csv" download="PARENT_FINAL.csv" class="btn">📥 PARENT DATASET</a>
+    <a href="/" class="btn btn-green">← RETURN TO RED ZONE</a>
+  </div>
+</header>
+
+<main>
+  <div class="grid-2">
+    <!-- DIRECTIVES & RULES -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>FORENSIC DIRECTIVES // THREE BREACH RULES</span>
+        <span class="tag tag-cyan">REF: CHILD-17</span>
+      </div>
+
+      <div class="quote-box">
+        <strong>Archivist Memo:</strong><br>
+        <em>"The rows came back whole — every id present, every score where a score belongs. It is the metadata around them that does not survive cross-examination. PRALAYA touched the audit trail: seals struck below the floor, an audit clock walked past its window, child profiles erased exactly where the parent admits an edit."</em>
+      </div>
+
+      <div class="rules-grid">
+        <div class="rule-card">
+          <div class="rule-head">
+            <span style="color: var(--cyan);">RULE III — PROVENANCE (UNSEALED RECORD)</span>
+            <span class="tag tag-yellow">&lt; 0.500</span>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8;">
+            Sanctuary records whose <code>Record_Authenticity_Score &lt; 0.500</code>.
+          </p>
+          <div id="rule-iii-ids" style="font-size: 11px; color: #cbd5e1; word-break: break-all;">Computing...</div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-head">
+            <span style="color: var(--yellow);">RULE IV — CHRONOLOGY (STATUTORY BREACH)</span>
+            <span class="tag tag-yellow">&gt; 7.5 DAYS</span>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8;">
+            Audit entry written strictly later than the 7 day + 12h statutory grace window after transfer date (<code>Audit_Timestamp - Transfer_Date &gt; 7.5 days</code>).
+          </p>
+          <div id="rule-iv-ids" style="font-size: 11px; color: #cbd5e1; word-break: break-all;">Computing...</div>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-head">
+            <span style="color: var(--green);">RULE V — CORRELATION (PROFILE ERASURE)</span>
+            <span class="tag tag-yellow">&gt;= 2 BLANKS + ALTERED</span>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8;">
+            Child profile carries &gt;= 2 blank skill cells AND the parent record admits alteration (<code>Record_Alteration_Flag == True</code>).
+          </p>
+          <div id="rule-v-ids" style="font-size: 11px; color: #cbd5e1; word-break: break-all;">Computing...</div>
+        </div>
+      </div>
+
+      <button class="btn btn-green" id="btn-assemble" style="width: 100%;">⚡ ASSEMBLE FORENSIC DIGEST & DERIVE FLAG</button>
+
+      <!-- FLAG REWARD BOX -->
+      <div class="flag-box" id="flag-box">
+        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 THREE RULES ASSEMBLED // FRAGMENT 03 DERIVED:</span>
+        <div class="flag-display" id="flag-text">RZ{...}</div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY FLAG TO CLIPBOARD</button>
+          <a href="/" class="btn" style="border-color: var(--green);">RETURN TO GAME TERMINAL →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORENSIC INSPECTOR TABLE -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>FORENSIC EVIDENCE WORKBENCH</span>
+        <div class="tabs">
+          <button class="tab-btn active" id="tab-all" onclick="setTab('all')">All Records</button>
+          <button class="tab-btn" id="tab-iii" onclick="setTab('iii')">Rule III (9)</button>
+          <button class="tab-btn" id="tab-iv" onclick="setTab('iv')">Rule IV (7)</button>
+          <button class="tab-btn" id="tab-v" onclick="setTab('v')">Rule V (10)</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>NAME</th>
+              <th>AUTH SCORE</th>
+              <th>AUDIT GAP (DAYS)</th>
+              <th>CHILD BLANKS</th>
+              <th>ALTERED</th>
+            </tr>
+          </thead>
+          <tbody id="workbench-body">
+            <!-- Injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+let parentData = [];
+let childData = [];
+let derivedData = [];
+let activeTab = 'all';
+
+async function loadData() {
+  try {
+    const [pRes, cRes] = await Promise.all([
+      fetch('/datasets/parent_data.json'),
+      fetch('/datasets/child_data.json')
+    ]);
+    if (pRes.ok && cRes.ok) {
+      parentData = await pRes.json();
+      childData = await cRes.json();
+    }
+  } catch (e) {
+    console.warn('Dataset load failed:', e);
+  }
+  computeForensics();
+}
+
+function computeForensics() {
+  const childMap = new Map();
+  childData.forEach(c => childMap.set(String(c.Sanctuary_ID).trim(), c));
+
+  const skillKeys = ['Primary_Competency_Code', 'Secondary_Competency_Code', 'Skill_Tier_Level', 'Specialization_Track', 'Aptitude_Index_Score'];
+
+  derivedData = parentData.map(p => {
+    const id = String(p.Sanctuary_ID).trim();
+    const auth = Number(p.Record_Authenticity_Score) || 0;
+    const altered = String(p.Record_Alteration_Flag).toLowerCase() === 'true';
+
+    // Transfer Date & Audit Timestamp gap
+    let gapDays = 0;
+    try {
+      const tDate = new Date(p.Transfer_Date);
+      const aDate = new Date(p.Audit_Timestamp);
+      if (!isNaN(tDate) && !isNaN(aDate)) {
+        gapDays = (aDate - tDate) / (1000 * 60 * 60 * 24);
+      }
+    } catch (_) {}
+
+    // Child blanks count
+    const child = childMap.get(id);
+    let childBlanks = 0;
+    if (child) {
+      skillKeys.forEach(k => {
+        const val = child[k];
+        if (val === undefined || val === null || String(val).trim() === '') childBlanks++;
+      });
+    }
+
+    const ruleIII = auth < 0.500;
+    const ruleIV = gapDays > 7.5;
+    const ruleV = childBlanks >= 2 && altered;
+
+    return {
+      id,
+      name: p.Original_Name,
+      auth,
+      gapDays: Math.round(gapDays * 10) / 10,
+      childBlanks,
+      altered,
+      ruleIII,
+      ruleIV,
+      ruleV
+    };
+  });
+
+  const r3 = derivedData.filter(d => d.ruleIII).map(d => d.id).sort();
+  const r4 = derivedData.filter(d => d.ruleIV).map(d => d.id).sort();
+  const r5 = derivedData.filter(d => d.ruleV).map(d => d.id).sort();
+
+  document.getElementById('rule-iii-ids').innerText = r3.join(', ');
+  document.getElementById('rule-iv-ids').innerText = r4.join(', ');
+  document.getElementById('rule-v-ids').innerText = r5.join(', ');
+
+  document.getElementById('tab-iii').innerText = `Rule III (${r3.length})`;
+  document.getElementById('tab-iv').innerText = `Rule IV (${r4.length})`;
+  document.getElementById('tab-v').innerText = `Rule V (${r5.length})`;
+
+  renderTable();
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('workbench-body');
+  let list = derivedData;
+  if (activeTab === 'iii') list = derivedData.filter(d => d.ruleIII);
+  else if (activeTab === 'iv') list = derivedData.filter(d => d.ruleIV);
+  else if (activeTab === 'v') list = derivedData.filter(d => d.ruleV);
+
+  tbody.innerHTML = list.map(d => `
+    <tr>
+      <td><b>${d.id}</b></td>
+      <td>${d.name || '--'}</td>
+      <td style="color:${d.ruleIII ? 'var(--cyan)' : 'inherit'}">${d.auth}</td>
+      <td style="color:${d.ruleIV ? 'var(--yellow)' : 'inherit'}">${d.gapDays} d</td>
+      <td style="color:${d.childBlanks >= 2 ? 'var(--green)' : 'inherit'}">${d.childBlanks}</td>
+      <td>${d.altered ? '<span class="tag tag-yellow">TRUE</span>' : 'FALSE'}</td>
+    </tr>
+  `).join('');
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+document.getElementById('btn-assemble').onclick = async () => {
+  const r3 = derivedData.filter(d => d.ruleIII).map(d => d.id).sort();
+  const r4 = derivedData.filter(d => d.ruleIV).map(d => d.id).sort();
+  const r5 = derivedData.filter(d => d.ruleV).map(d => d.id).sort();
+
+  const material = `${r3.join(',')}|${r4.join(',')}|${r5.join(',')}`;
+  const digest = await sha256(material);
+  const flag = 'RZ{' + digest.slice(0, 32) + '}';
+
+  document.getElementById('flag-text').innerText = flag;
+  document.getElementById('flag-box').classList.add('show');
+};
+
+document.getElementById('btn-copy-flag').onclick = () => {
+  const f = document.getElementById('flag-text').innerText;
+  navigator.clipboard.writeText(f);
+  alert('Flag copied to clipboard!\n\nSubmit it at the terminal in the Red Zone map.');
+};
+
+loadData();
+</script>
+</body>
+</html>

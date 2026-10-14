@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED ZONE // CTF 04 · BONUS — THE DEADLOCK ENGINE</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg-dark: #05070f;
+    --bg-panel: #0d121f;
+    --bg-card: #151d30;
+    --border: #1e293b;
+    --red: #ff2a5f;
+    --cyan: #00e5ff;
+    --green: #00e676;
+    --yellow: #ffd600;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --font: 'JetBrains Mono', 'Segoe UI Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: rgba(13, 18, 31, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .badge { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .brand-title { font-weight: 900; letter-spacing: 1.5px; font-size: 16px; color: #fff; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--cyan); color: #fff; background: rgba(0, 229, 255, 0.1); }
+  .btn-green { background: var(--green); color: #020617; border-color: var(--green); font-weight: 800; }
+  .btn-green:hover { background: #4ade80; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
+
+  main { flex: 1; padding: 24px; max-width: 1300px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--yellow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .quote-box {
+    background: rgba(255, 214, 0, 0.04);
+    border-left: 3px solid var(--yellow);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  .stage-box {
+    background: #090e1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .flag-box {
+    background: #020617;
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 0 24px rgba(0, 230, 118, 0.2);
+  }
+  .flag-box.show { display: flex; }
+  .flag-display {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 1px;
+    word-break: break-all;
+    background: rgba(0, 230, 118, 0.1);
+    padding: 10px 14px;
+    border-radius: 6px;
+    user-select: all;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="badge">CTF 04 · BONUS // OPTIONAL</span>
+    <span class="brand-title">THE DEADLOCK ENGINE: BLACKOUT PROTOCOL</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/" class="btn">← RETURN TO RED ZONE</a>
+  </div>
+</header>
+
+<main>
+  <div class="grid-2">
+    <!-- PROTOCOL BRIEFING -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>FACILITY ORDERS // CENTRAL ATRIUM</span>
+        <span class="tag tag-yellow">BONUS PROTOCOL</span>
+      </div>
+
+      <div class="quote-box">
+        <strong>Engine Telemetry:</strong><br>
+        <em>"The Central Atrium suffered a cascade failure during the Blackout Protocol. Critical resources (Coolant, Bus, Maglock, Fuel, Token) are pinned in circular wait states."</em>
+        <br><br>
+        <strong>Notice:</strong> This challenge is an <b>OPTIONAL BONUS</b>. It does not gate CTF 05 or the Final Exit.
+      </div>
+
+      <div class="stage-box">
+        <b style="color: var(--cyan);">STAGE 1 — RESOURCE-ALLOCATION GRAPH:</b>
+        <p style="font-size: 12px; color: #94a3b8;">
+          Cycle detected: Process P2 holds R3 (Maglock) and requests R4 (Fuel), while Process P4 holds R4 and requests R3.
+          Preemption target: <code>P2</code> or <code>P4</code> breaks the circular wait and drains the system.
+        </p>
+      </div>
+
+      <div class="stage-box">
+        <b style="color: var(--cyan);">STAGE 2 — BANKER'S SAFETY SCHEDULER:</b>
+        <p style="font-size: 12px; color: #94a3b8;">
+          Max-claim validation with eviction of stale cache entries to guarantee deadlock-free execution.
+        </p>
+      </div>
+
+      <div class="stage-box">
+        <b style="color: var(--cyan);">STAGE 3 & 4 — CONSTRAINED ROUTING & SYNTHESIS:</b>
+        <p style="font-size: 12px; color: #94a3b8;">
+          Quiescing the network nodes into safe quiescent state.
+        </p>
+      </div>
+    </div>
+
+    <!-- RECOVERY CONSOLE -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>BLACKOUT PROTOCOL CONSOLE</span>
+        <span class="tag tag-yellow">READY</span>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-dim);">
+        Execute the protocol quiesce sequence to release the deadlock and retrieve the bonus flag:
+      </p>
+
+      <div style="background: #030712; border: 1px dashed var(--yellow); padding: 14px; border-radius: 8px;">
+        <span style="font-size: 12px; color: var(--yellow); font-weight: 700;">COMMAND SEQUENCE:</span>
+        <pre style="margin-top: 6px; font-size: 12px; color: var(--cyan); line-height: 1.8;">&gt; ANALYZE ALLOCATION GRAPH... DEADLOCK DETECTED {P2, P4}
+&gt; PREEMPT TARGET: P2 (MAGLOCK RELEASED)
+&gt; VERIFY BANKER'S SAFETY: GRANTED
+&gt; APPLY BLACKOUT QUIESCE ROUTE...</pre>
+      </div>
+
+      <button class="btn btn-green" id="btn-quiesce" style="width: 100%;">⚡ EXECUTE BLACKOUT PROTOCOL QUIESCE</button>
+
+      <!-- FLAG REWARD BOX -->
+      <div class="flag-box" id="flag-box">
+        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 BLACKOUT PROTOCOL QUIESCED // BONUS FLAG:</span>
+        <div class="flag-display" id="flag-text">RZ{blackout_protocol_quiesce}</div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY BONUS FLAG</button>
+          <a href="/" class="btn">RETURN TO RED ZONE →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.getElementById('btn-quiesce').onclick = () => {
+  document.getElementById('flag-box').classList.add('show');
+};
+
+document.getElementById('btn-copy-flag').onclick = () => {
+  const f = document.getElementById('flag-text').innerText;
+  navigator.clipboard.writeText(f);
+  alert('Bonus flag copied to clipboard!\n\nSubmit it at the Central Atrium terminal in the Red Zone map.');
+};
+</script>
+</body>
+</html>

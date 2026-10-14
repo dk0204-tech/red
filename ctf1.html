@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED ZONE // CTF 01 — GHOST SIGNAL</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg-dark: #05070f;
+    --bg-panel: #0d121f;
+    --bg-card: #151d30;
+    --border: #1e293b;
+    --border-hot: #00e5ff;
+    --cyan: #00e5ff;
+    --red: #ff2a5f;
+    --green: #00e676;
+    --yellow: #ffd600;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --font: 'JetBrains Mono', 'Segoe UI Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: rgba(13, 18, 31, 0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .badge { background: rgba(0, 229, 255, 0.15); color: var(--cyan); border: 1px solid var(--cyan); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .brand-title { font-weight: 900; letter-spacing: 1.5px; font-size: 16px; color: #fff; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .btn {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--cyan); color: #fff; background: rgba(0, 229, 255, 0.1); }
+  .btn-cyan { background: var(--cyan); color: #020617; border-color: var(--cyan); font-weight: 800; }
+  .btn-cyan:hover { background: #38bdf8; color: #020617; box-shadow: 0 0 16px rgba(0, 229, 255, 0.4); }
+  .btn-green { background: var(--green); color: #020617; border-color: var(--green); font-weight: 800; }
+  .btn-green:hover { background: #4ade80; color: #020617; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
+
+  main { flex: 1; padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+  
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--cyan);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .quote-box {
+    background: rgba(0, 229, 255, 0.04);
+    border-left: 3px solid var(--cyan);
+    padding: 14px 16px;
+    border-radius: 0 8px 8px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tag-green { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
+  .tag-red { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); }
+  .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  /* Workstation Table */
+  .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .input {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+  }
+  .input:focus { border-color: var(--cyan); }
+  .table-wrap { overflow-x: auto; max-height: 480px; border: 1px solid var(--border); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+  th { background: #111827; padding: 10px 12px; color: var(--text-dim); position: sticky; top: 0; border-bottom: 1px solid var(--border); font-weight: 700; }
+  td { padding: 9px 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+  tr:hover td { background: rgba(0, 229, 255, 0.05); }
+
+  /* Attestation Box */
+  .attestation-box {
+    background: #090e1a;
+    border: 1px dashed var(--cyan);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .id-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .id-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .id-chip.selected { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 229, 255, 0.1); }
+  .id-chip.trap { border-color: var(--red); color: var(--red); text-decoration: line-through; }
+
+  .flag-box {
+    background: #020617;
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 0 24px rgba(0, 230, 118, 0.2);
+  }
+  .flag-box.show { display: flex; }
+  .flag-display {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 1px;
+    word-break: break-all;
+    background: rgba(0, 230, 118, 0.1);
+    padding: 10px 14px;
+    border-radius: 6px;
+    user-select: all;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="badge">CTF 01 · GHOST SIGNAL</span>
+    <span class="brand-title">PRALAYA ARCHIVE TERMINAL</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/datasets/PARENT_FINAL.csv" download="PARENT_FINAL.csv" class="btn">📥 DOWNLOAD PARENT DATASET</a>
+    <a href="/" class="btn btn-cyan">← RETURN TO RED ZONE</a>
+  </div>
+</header>
+
+<main>
+  <div class="grid-2">
+    <!-- STORY / DIRECTIVE -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>MISSION DIRECTIVE // RELAY STATION</span>
+        <span class="tag tag-yellow">SECURITY CLEARANCE: ARCHIVIST</span>
+      </div>
+      <div class="quote-box">
+        <strong>Intercepted Archive Log:</strong><br>
+        <em>"The PRALAYA Archive Terminal is the only system from the collapsed sanctuary network still reachable. It still answers questions, but it doesn't always tell the truth about what it hands back."</em>
+        <br><br>
+        <strong>Recovery Directive:</strong><br>
+        <em>"Fragment 1 belongs only to the sanctuary records whose identity was fully verified, never falsified to protect someone, and signed correctly. The terminal thinks it knows which records those are. It's wrong about one of them."</em>
+      </div>
+
+      <div>
+        <h3 style="font-size: 13px; color: var(--cyan); margin-bottom: 8px;">INVESTIGATION CRITERIA:</h3>
+        <ol style="margin-left: 20px; font-size: 13px; color: #94a3b8; display: flex; flex-direction: column; gap: 6px;">
+          <li>Must have <code>Identity_Record_Verified = True</code>.</li>
+          <li>Must have <code>Signature_Valid_Flag = True</code>.</li>
+          <li><strong>Must NOT</strong> be falsified: <code>Falsified_To_Protect_Flag = False</code>.</li>
+        </ol>
+      </div>
+
+      <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid rgba(255, 42, 95, 0.3); padding: 12px; border-radius: 8px;">
+        <span style="color: var(--red); font-weight: 700;">⚠️ THE MANIFEST TRAP:</span>
+        <p style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
+          The system's pre-compiled manifest contained <strong>13 records</strong>. One of them (<code>S021</code>) was secretly flagged with <code>Falsified_To_Protect_Flag = True</code>! You must reject the false record and attest the 12 authentic records.
+        </p>
+      </div>
+    </div>
+
+    <!-- ATTESTATION CONSOLE -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>FRAGMENT 1 ATTESTATION CONSOLE</span>
+        <span class="tag tag-green">LIVE ADJUDICATION</span>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-dim);">
+        Select or verify the authentic sanctuary records (12 required). Discard any record with falsified evidence:
+      </p>
+
+      <div class="attestation-box">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 12px; color: var(--cyan); font-weight: 700;">MANIFEST CANDIDATES:</span>
+          <span id="selected-count" style="font-size: 12px; color: var(--text-dim);">12 of 12 selected</span>
+        </div>
+        <div class="id-chips" id="candidate-chips">
+          <!-- Chips injected by JS -->
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button class="btn btn-green" id="btn-attest" style="flex: 1;">⚡ SUBMIT ATTESTATION & DERIVE FLAG</button>
+        <button class="btn" id="btn-reset-candidates">RESET TO INTENDED 12</button>
+      </div>
+
+      <!-- FLAG REWARD BOX -->
+      <div class="flag-box" id="flag-box">
+        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 ATTESTATION ACCEPTED // FRAGMENT 01 DERIVED:</span>
+        <div class="flag-display" id="flag-text">RZ{...}</div>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY FLAG TO CLIPBOARD</button>
+          <a href="/" class="btn btn-cyan">RETURN TO GAME TERMINAL →</a>
+        </div>
+      </div>
+      <div id="attest-status" style="font-size: 12px; color: var(--cyan);"></div>
+    </div>
+  </div>
+
+  <!-- WORKSTATION TABLE -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>PARENT ARCHIVE RECORDS EXPLORER (120 TOTAL)</span>
+      <div class="filter-bar">
+        <input type="text" class="input" id="search-input" placeholder="Search ID or Name..." style="width: 220px;">
+        <select class="input" id="sector-filter">
+          <option value="">All Sectors</option>
+          <option value="Civic">Civic</option>
+          <option value="Medical">Medical</option>
+          <option value="Research">Research</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Communications">Communications</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="records-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ORIGINAL NAME</th>
+            <th>SECTOR</th>
+            <th>AUTHENTICITY</th>
+            <th>SIGNATURE VALID</th>
+            <th>FALSIFIED TO PROTECT</th>
+            <th>ALTERATION</th>
+            <th>FRAGMENTS</th>
+          </tr>
+        </thead>
+        <tbody id="records-body">
+          <!-- Injected by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+let parentData = [];
+const DEFAULT_CANDIDATES = ['S001', 'S021', 'S024', 'S027', 'S046', 'S051', 'S054', 'S060', 'S073', 'S077', 'S084', 'S105', 'S120'];
+const INTENDED_12 = ['S001', 'S024', 'S027', 'S046', 'S051', 'S054', 'S060', 'S073', 'S077', 'S084', 'S105', 'S120'];
+let activeSelected = new Set(INTENDED_12);
+
+async function loadData() {
+  try {
+    const res = await fetch('/datasets/parent_data.json');
+    if (res.ok) {
+      parentData = await res.json();
+    } else {
+      const csvRes = await fetch('/datasets/PARENT_FINAL.csv');
+      const text = await csvRes.text();
+      parentData = parseCsvText(text);
+    }
+  } catch (e) {
+    console.warn('Dataset fetch failed, using fallback records:', e);
+  }
+  renderTable();
+  renderChips();
+}
+
+function parseCsvText(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(l => {
+    const parts = l.split(',');
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (parts[i] || '').trim().replace(/^"|"$/g, ''));
+    return obj;
+  });
+}
+
+function renderChips() {
+  const host = document.getElementById('candidate-chips');
+  host.innerHTML = '';
+  DEFAULT_CANDIDATES.forEach(id => {
+    const chip = document.createElement('div');
+    const isSelected = activeSelected.has(id);
+    const isTrap = id === 'S021';
+    chip.className = 'id-chip' + (isSelected ? ' selected' : '') + (!isSelected && isTrap ? ' trap' : '');
+    chip.innerHTML = `<span>${isSelected ? '☑' : '☐'} <b>${id}</b></span> ${isTrap ? '<span class="tag tag-red">FALSIFIED TRAP</span>' : ''}`;
+    chip.onclick = () => {
+      if (activeSelected.has(id)) activeSelected.delete(id);
+      else activeSelected.add(id);
+      renderChips();
+    };
+    host.appendChild(chip);
+  });
+  document.getElementById('selected-count').innerText = `${activeSelected.size} records selected`;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('records-body');
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const sector = document.getElementById('sector-filter').value;
+  
+  const filtered = parentData.filter(r => {
+    const matchSearch = (r.Sanctuary_ID || '').toLowerCase().includes(search) || (r.Original_Name || '').toLowerCase().includes(search);
+    const matchSector = !sector || r.Sector === sector;
+    return matchSearch && matchSector;
+  });
+
+  tbody.innerHTML = filtered.map(r => {
+    const isTrap = r.Sanctuary_ID === 'S021';
+    const isCandidate = INTENDED_12.includes(r.Sanctuary_ID);
+    const falsified = String(r.Falsified_To_Protect_Flag).toLowerCase() === 'true';
+    const sigValid = String(r.Signature_Valid_Flag).toLowerCase() === 'true';
+    return `
+      <tr style="${isTrap ? 'background: rgba(255,42,95,0.08);' : isCandidate ? 'background: rgba(0,229,255,0.04);' : ''}">
+        <td><b>${r.Sanctuary_ID}</b></td>
+        <td>${r.Original_Name || '--'}</td>
+        <td>${r.Sector || '--'}</td>
+        <td>${r.Record_Authenticity_Score || '--'}</td>
+        <td><span class="tag ${sigValid ? 'tag-green' : 'tag-red'}">${sigValid ? 'TRUE' : 'FALSE'}</span></td>
+        <td><span class="tag ${falsified ? 'tag-red' : 'tag-green'}">${falsified ? 'TRUE (FALSIFIED)' : 'FALSE'}</span></td>
+        <td>${r.PRALAYA_Alteration_Type || 'none'}</td>
+        <td>${r.Evidence_Fragment_Count || 0}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+document.getElementById('search-input').oninput = renderTable;
+document.getElementById('sector-filter').onchange = renderTable;
+
+document.getElementById('btn-reset-candidates').onclick = () => {
+  activeSelected = new Set(INTENDED_12);
+  renderChips();
+};
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+document.getElementById('btn-attest').onclick = async () => {
+  const sorted = Array.from(activeSelected).sort();
+  const status = document.getElementById('attest-status');
+  const box = document.getElementById('flag-box');
+
+  if (activeSelected.has('S021')) {
+    status.innerHTML = '<span style="color:var(--red);">❌ ATTESTATION REJECTED: S021 carries Falsified_To_Protect_Flag=True! Deselect S021 to satisfy the directive.</span>';
+    box.classList.remove('show');
+    return;
+  }
+  
+  if (sorted.length !== 12 || !INTENDED_12.every(id => activeSelected.has(id))) {
+    status.innerHTML = '<span style="color:var(--yellow);">⚠️ INCOMPLETE SET: The 12 authentic records must be attested. Check the list.</span>';
+    box.classList.remove('show');
+    return;
+  }
+
+  // Authoritative derivation
+  const salt = 'pralaya::adjudication::r7';
+  const material = `RZ1::FRAGMENT1::${sorted.join(',')}::${salt}`;
+  const digest = await sha256(material);
+  const flag = `RZ{${digest.slice(0, 40)}}`;
+
+  document.getElementById('flag-text').innerText = flag;
+  box.classList.add('show');
+  status.innerHTML = '<span style="color:var(--green);">✅ 12 OF 12 AUTHENTIC RECORDS ATTESTED. FRAGMENT 1 RECOVERED.</span>';
+};
+
+document.getElementById('btn-copy-flag').onclick = () => {
+  const f = document.getElementById('flag-text').innerText;
+  navigator.clipboard.writeText(f);
+  alert('Flag copied to clipboard!\n\nSubmit it at the terminal in the Red Zone map.');
+};
+
+loadData();
+</script>
+</body>
+</html>
