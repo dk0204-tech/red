@@ -3273,6 +3273,8 @@
                 status.innerText = allDone
                     ? '🏆 THE LAST DATASET — all data fragments recovered.'
                     : '✅ DATA FRAGMENT ' + pad(n) + ' VERIFIED — CTF-' + pad(n) + ' COMPLETE.';
+            } else if (n) {
+                // ---- READY (spec §5) ----
                 const CTF_DOSSIERS = {
                     1: [
                         '▶ PRALAYA ARCHIVE // RELAY STATION (CTF-01)',
