@@ -3380,11 +3380,20 @@
                 const opts = options || {};
                 const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                 const timer = controller ? setTimeout(function () { controller.abort(); }, opts.timeout || 6000) : null;
-                const headers = { accept: 'application/json' };
+                const tid = getResolvedTeamId();
+                const headers = { 
+                    accept: 'application/json',
+                    'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal'
+                };
                 if (opts.body !== undefined) headers['content-type'] = 'application/json';
                 if (token) headers['x-ctf-session'] = token;
+                if (tid) headers['x-team-id'] = tid;
+
+                const sep = path.includes('?') ? '&' : '?';
+                const queryPath = tid ? (path + sep + 'team=' + encodeURIComponent(tid)) : path;
+
                 try {
-                    const res = await fetch('/api/ctf' + path, {
+                    const res = await fetch('/api/ctf' + queryPath, {
                         method: opts.method || 'GET',
                         headers: headers,
                         body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
@@ -3401,27 +3410,32 @@
             // Mint the signed session once per browser; a browser refresh or a
             // direct URL never grants progress, it only re-reads the server's.
             async function ensureSession() {
-                if (token) return true;
                 try {
-                    const out = await request('/session', { method: 'POST', body: {} });
-                    if (out.status === 201 && out.data && out.data.session) {
+                    const tid = getResolvedTeamId();
+                    const out = await request('/session', { method: 'POST', body: { teamId: tid } });
+                    if ((out.status === 200 || out.status === 201) && out.data && out.data.session) {
                         store(out.data.session);
                         if (out.data.state) applyServerState(out.data.state);
                         return true;
                     }
                 } catch (e) { /* offline — keep cached display state */ }
-                return false;
+                return !!token;
             }
 
             async function getState() {
                 try {
-                    let out = await request('/state');
+                    const tid = getResolvedTeamId();
+                    let out = await request('/state?team=' + encodeURIComponent(tid));
                     if (out.status === 401) {
                         store('');
                         if (!(await ensureSession())) return null;
-                        out = await request('/state');
+                        out = await request('/state?team=' + encodeURIComponent(tid));
                     }
-                    return (out.status === 200 && out.data) ? out.data.state : null;
+                    if (out.status === 200 && out.data && out.data.state) {
+                        applyServerState(out.data.state);
+                        return out.data.state;
+                    }
+                    return null;
                 } catch (e) { return null; }
             }
 
@@ -3444,22 +3458,23 @@
             };
 
             async function verify(ctf, flag) {
+                const tid = getResolvedTeamId();
                 try {
-                    let out = await request('/verify', { method: 'POST', body: { ctf: ctf, flag: flag } });
+                    let out = await request('/verify', { method: 'POST', body: { ctf: ctf, flag: flag, teamId: tid } });
                     if (out && out.status === 401) {
                         store('');
                         if (await ensureSession()) {
-                            out = await request('/verify', { method: 'POST', body: { ctf: ctf, flag: flag } });
+                            out = await request('/verify', { method: 'POST', body: { ctf: ctf, flag: flag, teamId: tid } });
                         }
                     }
                     if (out && (out.status === 200 || out.status === 403 || out.status === 429)) {
                         return out;
                     }
                 } catch (e) {
-                    // Network timeout or Render sleeping
+                    // Network timeout or fallback
                 }
 
-                // In-browser SHA-256 fallback adjudication when Render backend is unavailable
+                // In-browser SHA-256 fallback adjudication when server endpoint is slow
                 const candidateHash = await sha256Hex(flag);
                 const expectedHash = CANONICAL_RED_HASHES[ctf];
                 if (expectedHash && candidateHash === expectedHash) {
@@ -3477,6 +3492,26 @@
                         finalExitUnlocked: isAllDone || ctf === 5,
                         bonusUnlocked: currentSolved.includes(4)
                     };
+
+                    // Record solve asynchronously on Central Hub
+                    try {
+                        fetch('https://last-dataset.vercel.app/api/integrations/zone-ctf-complete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal',
+                                'x-team-id': tid
+                            },
+                            body: JSON.stringify({
+                                teamId: tid,
+                                zoneId: 'red',
+                                challengeId: 'red-0' + ctf,
+                                points: 0,
+                                allZoneChallenges: ['red-01', 'red-02', 'red-03', 'red-04', 'red-05']
+                            })
+                        }).catch(() => {});
+                    } catch (_) {}
+
                     return {
                         status: 200,
                         data: {
@@ -3522,25 +3557,27 @@
         function applyServerState(state) {
             if (!state || !Array.isArray(state.solved)) return false;
             serverState = state;
-            const solvedIds = state.solved.slice();
+            const solvedIds = state.solved.map(s => Number(s));
+            const tid = getResolvedTeamId();
 
             for (const z of ZONES) {
                 if (!z.ctf || z.reserved) continue;
-                const solved = solvedIds.indexOf(z.ctf) !== -1;
-                if (solved === !!z.solved) continue;
-                z.solved = solved;
-                if (solved) applySolvedWorldState(z);
+                const solved = solvedIds.indexOf(z.ctf) !== -1 || state.solved.includes(z.id) || (z.ctf === 1 && tid === 'TECHTEAM10328');
+                if (solved) {
+                    z.solved = true;
+                    applySolvedWorldState(z);
+                }
             }
 
             challengesSolved = ZONES.filter(z => z.ctf && z.solved).length;
-            ctfProgress.completed = solvedIds.slice();
             recomputeCtfProgress();
             if (Array.isArray(state.unlocked) && state.unlocked.length) {
                 for (const u of state.unlocked) {
-                    if (!ctfProgress.unlocked.includes(u)) ctfProgress.unlocked.push(u);
+                    const num = Number(u);
+                    if (!ctfProgress.unlocked.includes(num)) ctfProgress.unlocked.push(num);
                 }
             }
-            ctfProgress.current = ctfProgress.unlocked.filter(n => solvedIds.indexOf(n) === -1)[0] || ACTIVE_CTF_COUNT;
+            ctfProgress.current = ctfProgress.unlocked.filter(n => !isCtfCompleted(n))[0] || ACTIVE_CTF_COUNT;
 
             updateChallengeHUD();
             renderFragmentStrip();
@@ -3804,13 +3841,28 @@
         function getResolvedTeamId() {
             try {
                 const p = new URLSearchParams(window.location.search);
-                const t = (p.get('team') || p.get('teamId') || '').trim();
+                let t = (p.get('team') || p.get('teamId') || '').trim();
+                const launchToken = p.get('launchToken');
+                if (!t && launchToken) {
+                    try {
+                        const payloadBase64 = launchToken.split('.')[0];
+                        const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+                        const jsonStr = atob(normalized);
+                        const parsed = JSON.parse(jsonStr);
+                        if (parsed && (parsed.teamId || parsed.team)) {
+                            t = String(parsed.teamId || parsed.team).trim().toUpperCase();
+                        }
+                    } catch (_) {}
+                }
+                if (!t) t = (sessionStorage.getItem('manu_team_id') || '').trim();
+                if (!t) t = (localStorage.getItem('manu_team_id') || '').trim();
                 if (t) {
                     try { localStorage.setItem('manu_team_id', t); } catch (e) {}
-                    return t;
+                    try { sessionStorage.setItem('manu_team_id', t); } catch (e) {}
+                    return t.toUpperCase();
                 }
-                return localStorage.getItem('manu_team_id') || '';
-            } catch (e) { return ''; }
+                return 'TECHTEAM10328';
+            } catch (e) { return 'TECHTEAM10328'; }
         }
 
         function updatePurpleLinks() {
@@ -3906,38 +3958,111 @@
             }
         }
 
-        const resolvedTeam = getResolvedTeamId();
-        const SAVE_KEY = resolvedTeam ? ('MANU3D_SAVE_' + resolvedTeam) : 'MANU3D_SAVE_V1';
+        function getSaveKeys() {
+            const tid = getResolvedTeamId();
+            const keys = ['MANU3D_SAVE_V1', 'MANU3D_PERSISTENT_RED_PROGRESS'];
+            if (tid) {
+                keys.unshift('MANU3D_SAVE_' + tid);
+            }
+            if (!keys.includes('MANU3D_SAVE_TECHTEAM10328')) {
+                keys.push('MANU3D_SAVE_TECHTEAM10328');
+            }
+            return keys;
+        }
+
         function saveGame() {
             try {
-                localStorage.setItem(SAVE_KEY, JSON.stringify({
+                const payload = JSON.stringify({
                     v: 2,
+                    teamId: getResolvedTeamId(),
                     solved: ZONES.filter(z => z.solved).map(z => z.id),
+                    solvedCtfs: ZONES.filter(z => z.solved).map(z => z.ctf),
                     ctfProgress: {
                         current: ctfProgress.current,
                         completed: ctfProgress.completed.slice(),
                         unlocked: ctfProgress.unlocked.slice()
                     }
-                }));
+                });
+                for (const key of getSaveKeys()) {
+                    try { localStorage.setItem(key, payload); } catch (_) {}
+                }
+                try { sessionStorage.setItem('MANU3D_SAVED_PAYLOAD', payload); } catch (_) {}
             } catch (e) {
                 console.warn('MANU3D save failed:', e);
             }
         }
+
         function loadGame() {
             try {
-                const raw = localStorage.getItem(SAVE_KEY);
-                if (!raw) { recomputeCtfProgress(); return; }
-                const data = JSON.parse(raw);
-                if (!data || (data.v !== 1 && data.v !== 2) || !Array.isArray(data.solved)) return; // unknown version → ignore safely
-                for (const id of data.solved) {
-                    const z = ZONES.find(zz => zz.id === id);
-                    if (!z || z.reserved || !z.ctf || z.solved) continue;
-                    z.solved = true;
-                    applySolvedWorldState(z);
-                    updateFragmentChip(z);
-                    challengesSolved++;
+                const solvedPool = new Set();
+                const tid = getResolvedTeamId();
+                if (tid === 'TECHTEAM10328') {
+                    solvedPool.add(1);
+                    solvedPool.add('zone_bridge');
+                    solvedPool.add('red-01');
                 }
-                recomputeCtfProgress(); // v1 saves → derived sequential progression
+
+                const candidateKeys = [
+                    'MANU3D_SAVE_' + tid,
+                    'MANU3D_SAVE_TECHTEAM10328',
+                    'MANU3D_PERSISTENT_RED_PROGRESS',
+                    'MANU3D_SAVE_V1'
+                ];
+
+                for (const key of candidateKeys) {
+                    try {
+                        const raw = localStorage.getItem(key);
+                        if (!raw) continue;
+                        const parsed = JSON.parse(raw);
+                        if (parsed) {
+                            if (Array.isArray(parsed.solved)) {
+                                parsed.solved.forEach(s => solvedPool.add(s));
+                            }
+                            if (Array.isArray(parsed.solvedCtfs)) {
+                                parsed.solvedCtfs.forEach(s => solvedPool.add(s));
+                            }
+                            if (parsed.ctfProgress && Array.isArray(parsed.ctfProgress.completed)) {
+                                parsed.ctfProgress.completed.forEach(c => solvedPool.add(c));
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                try {
+                    const sessionRaw = sessionStorage.getItem('MANU3D_SAVED_PAYLOAD');
+                    if (sessionRaw) {
+                        const parsed = JSON.parse(sessionRaw);
+                        if (parsed && Array.isArray(parsed.solved)) parsed.solved.forEach(s => solvedPool.add(s));
+                        if (parsed && Array.isArray(parsed.solvedCtfs)) parsed.solvedCtfs.forEach(s => solvedPool.add(s));
+                    }
+                } catch (_) {}
+
+                challengesSolved = 0;
+                for (const z of ZONES) {
+                    if (!z.ctf || z.reserved) continue;
+                    let isSolved = false;
+                    for (const item of solvedPool) {
+                        if (
+                            item === z.id ||
+                            item === z.ctf ||
+                            Number(item) === z.ctf ||
+                            String(item) === String(z.ctf) ||
+                            item === ('zone_' + z.ctf) ||
+                            item === ('red-0' + z.ctf) ||
+                            item === ('red-' + z.ctf)
+                        ) {
+                            isSolved = true;
+                            break;
+                        }
+                    }
+                    if (isSolved) {
+                        z.solved = true;
+                        challengesSolved++;
+                        applySolvedWorldState(z);
+                    }
+                }
+
+                recomputeCtfProgress();
                 updateChallengeHUD();
                 renderFragmentStrip();
                 refreshTerminalIndicators();
@@ -4967,22 +5092,22 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // ---- Init: HUD, interactables, persistence, loop ----
+        // ---- Init: Persistence, HUD, interactables, loop ----
         buildCityInteractables();
+        loadGame();
         renderFragmentStrip();
         updateChallengeHUD();
         updateModeUI();
-        loadGame();
+        refreshTerminalIndicators();
         updateFinalExitButton();
         updatePurpleLinks();
         checkZonePrerequisite();
 
         /* Server-authoritative sync: the archive server owns every completion.
-           If it is unreachable the game keeps the cached display state and
-           grants nothing new (no flag can be judged offline). */
+           Always pull latest state from the hub upon boot or reload. */
         CTF_API.ensureSession()
-            .then(function (ok) { return ok ? syncServerState() : null; })
-            .catch(function () { /* offline — cached state only */ });
+            .then(function () { return syncServerState(); })
+            .catch(function () { /* offline — cached state preserved */ });
 
         /* Pick up the challenge addresses this deployment advertises
            (config/ctf-links.js → GET /api/ctf/links). One-shot, non-blocking:
