@@ -3868,7 +3868,15 @@
         function updatePurpleLinks() {
             const tid = getResolvedTeamId();
             const baseUrl = 'https://red-purple-slideshow.vercel.app/';
-            const targetUrl = tid ? (baseUrl + '?team=' + encodeURIComponent(tid)) : baseUrl;
+            const params = new URLSearchParams();
+            if (tid) params.set('team', tid);
+            try {
+                const p = new URLSearchParams(window.location.search);
+                const lt = (p.get('launchToken') || sessionStorage.getItem('tld_launch_token') || localStorage.getItem('tld_launch_token') || '').trim();
+                if (lt) params.set('launchToken', lt);
+            } catch (_) {}
+            const qs = params.toString();
+            const targetUrl = qs ? (baseUrl + '?' + qs) : baseUrl;
             const finalPurple = document.getElementById('final-purple-btn');
             if (finalPurple) finalPurple.href = targetUrl;
             const modalPurple = document.getElementById('modal-purple-btn');
