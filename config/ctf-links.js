@@ -217,6 +217,13 @@ function ctfOpenTab(url, delayMs) {
         ctfNotify(CTF_MSG_NOT_CONFIGURED);
         return null;
     }
+    try {
+        const p = new URLSearchParams(window.location.search);
+        const t = (p.get('team') || p.get('teamId') || localStorage.getItem('manu_team_id') || '').trim();
+        if (t && !url.includes('team=')) {
+            url = url + (url.includes('?') ? '&' : '?') + 'team=' + encodeURIComponent(t);
+        }
+    } catch (e) {}
 
     let win = null;
     try {

@@ -19,7 +19,20 @@
         isMLTrained: false
     };
 
-    const STORAGE_KEY = 'MANU_PROTOCOL_SAVE_V1';
+    function getResolvedTeamId() {
+        try {
+            const p = new URLSearchParams(window.location.search);
+            const t = (p.get('team') || p.get('teamId') || '').trim();
+            if (t) {
+                try { localStorage.setItem('manu_team_id', t); } catch (e) {}
+                return t;
+            }
+            return localStorage.getItem('manu_team_id') || '';
+        } catch (e) { return ''; }
+    }
+
+    const resolvedTeam = getResolvedTeamId();
+    const STORAGE_KEY = resolvedTeam ? ('MANU_PROTOCOL_SAVE_' + resolvedTeam) : 'MANU_PROTOCOL_SAVE_V1';
 
     // --- State Persistence ---
     function saveState() {
@@ -664,9 +677,34 @@
         }
     }
 
-    function initiateFinalEvacuation() {
+    async function initiateFinalEvacuation() {
         window.MANU_AUDIO.playVictoryFanfare();
-        document.getElementById('victory-modal-overlay').classList.add('open');
+        const tid = getResolvedTeamId();
+        if (tid) {
+            try {
+                await fetch('/api/red/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-team-id': tid },
+                    body: JSON.stringify({ teamId: tid })
+                });
+            } catch (e) {
+                try {
+                    await fetch('https://last-dataset.vercel.app/api/red/complete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-team-id': tid },
+                        body: JSON.stringify({ teamId: tid })
+                    });
+                } catch (err) {}
+            }
+            if (window.opener) {
+                try { window.opener.postMessage({ type: 'ZONE_COMPLETED', zone: 'red', teamId: tid }, '*'); } catch (e) {}
+            }
+            if (window.parent && window.parent !== window) {
+                try { window.parent.postMessage({ type: 'ZONE_COMPLETED', zone: 'red', teamId: tid }, '*'); } catch (e) {}
+            }
+        }
+        const overlay = document.getElementById('victory-modal-overlay');
+        if (overlay) overlay.classList.add('open');
     }
 
     // --- Toast Notification Helper ---
