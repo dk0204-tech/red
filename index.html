@@ -4024,7 +4024,8 @@
             const lt = getResolvedLaunchToken();
             const headers = {
                 'Content-Type': 'application/json',
-                ...(lt ? { 'Authorization': 'Bearer ' + lt, 'x-launch-token': lt } : {})
+                ...(lt ? { 'Authorization': 'Bearer ' + lt, 'x-launch-token': lt } : {}),
+                'x-team-id': tid
             };
             const payload = { teamId: tid, ctfId: 'red-zone', zoneId: 'red', launchToken: lt || undefined };
 
