@@ -3562,7 +3562,7 @@
 
             for (const z of ZONES) {
                 if (!z.ctf || z.reserved) continue;
-                const solved = solvedIds.indexOf(z.ctf) !== -1 || state.solved.includes(z.id) || (z.ctf === 1 && tid === 'TECHTEAM10328');
+                const solved = solvedIds.indexOf(z.ctf) !== -1 || state.solved.includes(z.id);
                 if (solved) {
                     z.solved = true;
                     applySolvedWorldState(z);
@@ -3856,13 +3856,19 @@
                 }
                 if (!t) t = (sessionStorage.getItem('manu_team_id') || '').trim();
                 if (!t) t = (localStorage.getItem('manu_team_id') || '').trim();
+                if (t === 'TECHTEAM10328' && !param) {
+                    // Purge stale test team ID if not explicitly passed in URL
+                    try { localStorage.removeItem('manu_team_id'); } catch (_) {}
+                    try { sessionStorage.removeItem('manu_team_id'); } catch (_) {}
+                    t = '';
+                }
                 if (t) {
                     try { localStorage.setItem('manu_team_id', t); } catch (e) {}
                     try { sessionStorage.setItem('manu_team_id', t); } catch (e) {}
                     return t.toUpperCase();
                 }
-                return 'TECHTEAM10328';
-            } catch (e) { return 'TECHTEAM10328'; }
+                return '';
+            } catch (e) { return ''; }
         }
 
         function updatePurpleLinks() {
@@ -3968,21 +3974,19 @@
 
         function getSaveKeys() {
             const tid = getResolvedTeamId();
-            const keys = ['MANU3D_SAVE_V1', 'MANU3D_PERSISTENT_RED_PROGRESS'];
             if (tid) {
-                keys.unshift('MANU3D_SAVE_' + tid);
+                return ['MANU3D_SAVE_' + tid];
             }
-            if (!keys.includes('MANU3D_SAVE_TECHTEAM10328')) {
-                keys.push('MANU3D_SAVE_TECHTEAM10328');
-            }
-            return keys;
+            return ['MANU3D_SAVE_ANON'];
         }
 
         function saveGame() {
             try {
+                const tid = getResolvedTeamId();
+                if (!tid) return; // Do not persist unauthenticated state
                 const payload = JSON.stringify({
                     v: 2,
-                    teamId: getResolvedTeamId(),
+                    teamId: tid,
                     solved: ZONES.filter(z => z.solved).map(z => z.id),
                     solvedCtfs: ZONES.filter(z => z.solved).map(z => z.ctf),
                     ctfProgress: {
@@ -4004,17 +4008,10 @@
             try {
                 const solvedPool = new Set();
                 const tid = getResolvedTeamId();
-                if (tid === 'TECHTEAM10328') {
-                    solvedPool.add(1);
-                    solvedPool.add('zone_bridge');
-                    solvedPool.add('red-01');
-                }
+                if (!tid) return;
 
                 const candidateKeys = [
-                    'MANU3D_SAVE_' + tid,
-                    'MANU3D_SAVE_TECHTEAM10328',
-                    'MANU3D_PERSISTENT_RED_PROGRESS',
-                    'MANU3D_SAVE_V1'
+                    'MANU3D_SAVE_' + tid
                 ];
 
                 for (const key of candidateKeys) {
