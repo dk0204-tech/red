@@ -22,12 +22,18 @@
     function getResolvedTeamId() {
         try {
             const p = new URLSearchParams(window.location.search);
-            const t = (p.get('team') || p.get('teamId') || '').trim();
-            if (t) {
-                try { localStorage.setItem('manu_team_id', t); } catch (e) {}
-                return t;
+            const urlTeam = (p.get('team') || p.get('teamId') || '').trim().toUpperCase();
+            let stored = (sessionStorage.getItem('manu_team_id') || localStorage.getItem('manu_team_id') || '').trim().toUpperCase();
+            if (stored === 'TECHTEAM10328' && urlTeam !== 'TECHTEAM10328') {
+                try { localStorage.removeItem('manu_team_id'); } catch (_) {}
+                try { sessionStorage.removeItem('manu_team_id'); } catch (_) {}
+                stored = '';
             }
-            return localStorage.getItem('manu_team_id') || '';
+            const effective = urlTeam || (stored !== 'TECHTEAM10328' ? stored : '');
+            if (effective && effective !== 'TECHTEAM10328') {
+                try { localStorage.setItem('manu_team_id', effective); } catch (e) {}
+            }
+            return effective;
         } catch (e) { return ''; }
     }
 

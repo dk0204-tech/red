@@ -3841,7 +3841,8 @@
         function getResolvedTeamId() {
             try {
                 const p = new URLSearchParams(window.location.search);
-                let t = (p.get('team') || p.get('teamId') || '').trim();
+                const urlTeam = (p.get('team') || p.get('teamId') || '').trim().toUpperCase();
+                let t = urlTeam;
                 const launchToken = p.get('launchToken');
                 if (!t && launchToken) {
                     try {
@@ -3854,18 +3855,20 @@
                         }
                     } catch (_) {}
                 }
-                if (!t) t = (sessionStorage.getItem('manu_team_id') || '').trim();
-                if (!t) t = (localStorage.getItem('manu_team_id') || '').trim();
-                if (t === 'TECHTEAM10328' && !param) {
+                let stored = (sessionStorage.getItem('manu_team_id') || localStorage.getItem('manu_team_id') || '').trim().toUpperCase();
+                if (stored === 'TECHTEAM10328' && urlTeam !== 'TECHTEAM10328') {
                     // Purge stale test team ID if not explicitly passed in URL
                     try { localStorage.removeItem('manu_team_id'); } catch (_) {}
                     try { sessionStorage.removeItem('manu_team_id'); } catch (_) {}
-                    t = '';
+                    stored = '';
                 }
-                if (t) {
-                    try { localStorage.setItem('manu_team_id', t); } catch (e) {}
-                    try { sessionStorage.setItem('manu_team_id', t); } catch (e) {}
-                    return t.toUpperCase();
+                const effective = t || (stored !== 'TECHTEAM10328' ? stored : '');
+                if (effective) {
+                    if (effective !== 'TECHTEAM10328') {
+                        try { localStorage.setItem('manu_team_id', effective); } catch (e) {}
+                        try { sessionStorage.setItem('manu_team_id', effective); } catch (e) {}
+                    }
+                    return effective.toUpperCase();
                 }
                 return '';
             } catch (e) { return ''; }
