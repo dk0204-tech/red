@@ -684,14 +684,22 @@
             try {
                 await fetch('/api/red/complete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-team-id': tid },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal',
+                        'x-team-id': tid
+                    },
                     body: JSON.stringify({ teamId: tid })
                 });
             } catch (e) {
                 try {
                     await fetch('https://last-dataset.vercel.app/api/red/complete', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-team-id': tid },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer the-last-dataset-2026-production-service-token-manipal',
+                            'x-team-id': tid
+                        },
                         body: JSON.stringify({ teamId: tid })
                     });
                 } catch (err) {}
