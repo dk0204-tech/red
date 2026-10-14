@@ -3276,39 +3276,41 @@
                 const CTF_DOSSIERS = {
                     1: [
                         '▶ PRALAYA ARCHIVE // RELAY STATION (CTF-01)',
-                        'STATUS: IN-SITE WORKSTATION READY (ZERO DEPENDENCY ON RENDER)',
-                        'OBJECTIVE: Attest the 12 authentic records in PARENT_FINAL.csv.',
-                        'RULE: Discard falsified record S021 (Falsified_To_Protect_Flag=True).',
+                        'STATUS: IN-SITE WORKSTATION READY',
+                        'CATEGORY: Cryptography // Difficulty: MEDIUM',
+                        'OBJECTIVE: Investigate the damaged records terminal of the collapsed sanctuary network. Attest the authentic records according to the recovery directive.',
                         'DATASET: PARENT_FINAL.csv available on-site via button below.',
                         'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf1.html.'
                     ].join('\n'),
                     2: [
                         '▶ SANCTUARY ARCHIVE // THE SILENT EDIT (CTF-02)',
-                        'STATUS: IN-SITE WORKSTATION READY (ZERO DEPENDENCY ON RENDER)',
-                        'OBJECTIVE: Discover off-record edits S033 & S110 and their logged triad members.',
-                        'KEY FORMAT: <silent_ids>|<touched_triad_ids>|<evidence_tally>',
+                        'STATUS: IN-SITE WORKSTATION READY',
+                        'CATEGORY: Web Exploitation // Difficulty: EASY',
+                        'OBJECTIVE: Trace off-record modifications and examine their relationship triad networks to reconstruct the recovery key.',
                         'DATASET: PARENT_FINAL.csv available on-site via button below.',
                         'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf2.html.'
                     ].join('\n'),
                     3: [
                         '▶ CHILD DATASET // METADATA FORENSICS (CTF-03)',
-                        'STATUS: IN-SITE WORKSTATION READY (ZERO DEPENDENCY ON RENDER)',
-                        'OBJECTIVE: Apply Rules III (<0.500 auth), IV (>7.5d audit gap), V (>=2 blanks & altered).',
-                        'KEY FORMAT: <rule_3_ids>|<rule_4_ids>|<rule_5_ids>',
+                        'STATUS: IN-SITE WORKSTATION READY',
+                        'CATEGORY: Metadata Forensics // Difficulty: HARD',
+                        'OBJECTIVE: Cross-examine Parent and Child datasets against the published forensic integrity rules.',
                         'DATASETS: PARENT_FINAL.csv & CHILD_FINAL.csv available on-site via buttons below.',
                         'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf3.html.'
                     ].join('\n'),
                     4: [
                         '▶ CENTRAL ATRIUM // THE DEADLOCK ENGINE (CTF-04 · BONUS)',
                         'STATUS: OPTIONAL BONUS PROTOCOL READY (GATES NOTHING)',
-                        'OBJECTIVE: Quiesce resource circular wait deadlock between P2 and P4.',
+                        'CATEGORY: System Reconstruction // Difficulty: HARD',
+                        'OBJECTIVE: Analyze the central atrium facility allocation graph and quiesce the deadlock cascade.',
                         'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf4.html.'
                     ].join('\n'),
                     5: [
                         '▶ BIOARCHIVE // THE LAST GATEKEEPER (CTF-05 · FINAL GATE)',
-                        'STATUS: IN-SITE REVERSE ENGINEERING WORKBENCH READY (ZERO DEPENDENCY ON RENDER)',
-                        'OBJECTIVE: Inspect gatekeeper ELF, pass split-seal integrity check, extract master flag.',
-                        'PACKAGE: gatekeeper executable, challenge, server & writeup available below.',
+                        'STATUS: IN-SITE REVERSE ENGINEERING WORKBENCH READY',
+                        'CATEGORY: Binary Exploitation // Reverse Engineering // Difficulty: HARD',
+                        'OBJECTIVE: Analyze the gatekeeper binary and authenticate the split seal continuation route to recover the master fragment.',
+                        'PACKAGE: Challenge binary and documentation available via button below.',
                         'WORKSTATION: Click "OPEN IN-SITE CTF WORKSTATION" to launch /ctf5.html.'
                     ].join('\n')
                 };

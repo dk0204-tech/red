@@ -70,7 +70,6 @@
   .btn-green:hover { background: #4ade80; color: #020617; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
 
   main { flex: 1; padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
-  
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
   @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
 
@@ -102,18 +101,11 @@
     color: #cbd5e1;
     font-size: 13px;
   }
-  .tag {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-  }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
   .tag-green { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
   .tag-red { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); }
   .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
 
-  /* Workstation Table */
   .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   .input {
     background: var(--bg-card);
@@ -132,7 +124,6 @@
   td { padding: 9px 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
   tr:hover td { background: rgba(0, 229, 255, 0.05); }
 
-  /* Attestation Box */
   .attestation-box {
     background: #090e1a;
     border: 1px dashed var(--cyan);
@@ -142,22 +133,6 @@
     flex-direction: column;
     gap: 12px;
   }
-  .id-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .id-chip {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .id-chip.selected { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 229, 255, 0.1); }
-  .id-chip.trap { border-color: var(--red); color: var(--red); text-decoration: line-through; }
-
   .flag-box {
     background: #020617;
     border: 1px solid var(--green);
@@ -171,7 +146,7 @@
   .flag-box.show { display: flex; }
   .flag-display {
     font-family: var(--font);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 900;
     color: var(--green);
     letter-spacing: 1px;
@@ -217,14 +192,14 @@
         <ol style="margin-left: 20px; font-size: 13px; color: #94a3b8; display: flex; flex-direction: column; gap: 6px;">
           <li>Must have <code>Identity_Record_Verified = True</code>.</li>
           <li>Must have <code>Signature_Valid_Flag = True</code>.</li>
-          <li><strong>Must NOT</strong> be falsified: <code>Falsified_To_Protect_Flag = False</code>.</li>
+          <li>Must satisfy archival integrity (never falsified to protect someone).</li>
         </ol>
       </div>
 
-      <div style="background: rgba(255, 42, 95, 0.08); border: 1px solid rgba(255, 42, 95, 0.3); padding: 12px; border-radius: 8px;">
-        <span style="color: var(--red); font-weight: 700;">⚠️ THE MANIFEST TRAP:</span>
+      <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid var(--border); padding: 12px; border-radius: 8px;">
+        <span style="color: var(--cyan); font-weight: 700;">INSTRUCTIONS:</span>
         <p style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
-          The system's pre-compiled manifest contained <strong>13 records</strong>. One of them (<code>S021</code>) was secretly flagged with <code>Falsified_To_Protect_Flag = True</code>! You must reject the false record and attest the 12 authentic records.
+          Analyze <code>PARENT_FINAL.csv</code> to identify the authentic records that meet all recovery criteria. Enter your identified Sanctuary IDs (comma-separated, e.g. <code>S001, S024, ...</code>) into the Attestation Console to derive Fragment 01.
         </p>
       </div>
     </div>
@@ -237,41 +212,33 @@
       </div>
 
       <p style="font-size: 13px; color: var(--text-dim);">
-        Select or verify the authentic sanctuary records (12 required). Discard any record with falsified evidence:
+        Enter the sanctuary record IDs that satisfy all three directives:
       </p>
 
       <div class="attestation-box">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 12px; color: var(--cyan); font-weight: 700;">MANIFEST CANDIDATES:</span>
-          <span id="selected-count" style="font-size: 12px; color: var(--text-dim);">12 of 12 selected</span>
-        </div>
-        <div class="id-chips" id="candidate-chips">
-          <!-- Chips injected by JS -->
-        </div>
+        <label for="attest-input" style="font-size: 12px; color: var(--cyan); font-weight: 700;">VERIFIED SANCTUARY RECORD IDS (comma-separated):</label>
+        <textarea id="attest-input" class="input" rows="4" placeholder="e.g. S001, S024, S027, ..." style="resize: vertical;"></textarea>
       </div>
 
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <button class="btn btn-green" id="btn-attest" style="flex: 1;">⚡ SUBMIT ATTESTATION & DERIVE FLAG</button>
-        <button class="btn" id="btn-reset-candidates">RESET TO INTENDED 12</button>
-      </div>
+      <button class="btn btn-green" id="btn-attest">⚡ SUBMIT ATTESTATION & DERIVE FRAGMENT 1</button>
 
       <!-- FLAG REWARD BOX -->
       <div class="flag-box" id="flag-box">
         <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 ATTESTATION ACCEPTED // FRAGMENT 01 DERIVED:</span>
-        <div class="flag-display" id="flag-text">RZ{...}</div>
+        <div class="flag-display" id="flag-text"></div>
         <div style="display: flex; gap: 12px;">
           <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY FLAG TO CLIPBOARD</button>
           <a href="/" class="btn btn-cyan">RETURN TO GAME TERMINAL →</a>
         </div>
       </div>
-      <div id="attest-status" style="font-size: 12px; color: var(--cyan);"></div>
+      <div id="attest-status" style="font-size: 12px; min-height: 20px;"></div>
     </div>
   </div>
 
   <!-- WORKSTATION TABLE -->
   <div class="panel">
     <div class="panel-title">
-      <span>PARENT ARCHIVE RECORDS EXPLORER (120 TOTAL)</span>
+      <span>PARENT ARCHIVE RECORDS EXPLORER</span>
       <div class="filter-bar">
         <input type="text" class="input" id="search-input" placeholder="Search ID or Name..." style="width: 220px;">
         <select class="input" id="sector-filter">
@@ -301,7 +268,6 @@
           </tr>
         </thead>
         <tbody id="records-body">
-          <!-- Injected by JS -->
         </tbody>
       </table>
     </div>
@@ -310,9 +276,6 @@
 
 <script>
 let parentData = [];
-const DEFAULT_CANDIDATES = ['S001', 'S021', 'S024', 'S027', 'S046', 'S051', 'S054', 'S060', 'S073', 'S077', 'S084', 'S105', 'S120'];
-const INTENDED_12 = ['S001', 'S024', 'S027', 'S046', 'S051', 'S054', 'S060', 'S073', 'S077', 'S084', 'S105', 'S120'];
-let activeSelected = new Set(INTENDED_12);
 
 async function loadData() {
   try {
@@ -325,10 +288,9 @@ async function loadData() {
       parentData = parseCsvText(text);
     }
   } catch (e) {
-    console.warn('Dataset fetch failed, using fallback records:', e);
+    console.warn('Dataset fetch failed:', e);
   }
   renderTable();
-  renderChips();
 }
 
 function parseCsvText(text) {
@@ -340,25 +302,6 @@ function parseCsvText(text) {
     headers.forEach((h, i) => obj[h] = (parts[i] || '').trim().replace(/^"|"$/g, ''));
     return obj;
   });
-}
-
-function renderChips() {
-  const host = document.getElementById('candidate-chips');
-  host.innerHTML = '';
-  DEFAULT_CANDIDATES.forEach(id => {
-    const chip = document.createElement('div');
-    const isSelected = activeSelected.has(id);
-    const isTrap = id === 'S021';
-    chip.className = 'id-chip' + (isSelected ? ' selected' : '') + (!isSelected && isTrap ? ' trap' : '');
-    chip.innerHTML = `<span>${isSelected ? '☑' : '☐'} <b>${id}</b></span> ${isTrap ? '<span class="tag tag-red">FALSIFIED TRAP</span>' : ''}`;
-    chip.onclick = () => {
-      if (activeSelected.has(id)) activeSelected.delete(id);
-      else activeSelected.add(id);
-      renderChips();
-    };
-    host.appendChild(chip);
-  });
-  document.getElementById('selected-count').innerText = `${activeSelected.size} records selected`;
 }
 
 function renderTable() {
@@ -373,18 +316,16 @@ function renderTable() {
   });
 
   tbody.innerHTML = filtered.map(r => {
-    const isTrap = r.Sanctuary_ID === 'S021';
-    const isCandidate = INTENDED_12.includes(r.Sanctuary_ID);
     const falsified = String(r.Falsified_To_Protect_Flag).toLowerCase() === 'true';
     const sigValid = String(r.Signature_Valid_Flag).toLowerCase() === 'true';
     return `
-      <tr style="${isTrap ? 'background: rgba(255,42,95,0.08);' : isCandidate ? 'background: rgba(0,229,255,0.04);' : ''}">
+      <tr>
         <td><b>${r.Sanctuary_ID}</b></td>
         <td>${r.Original_Name || '--'}</td>
         <td>${r.Sector || '--'}</td>
         <td>${r.Record_Authenticity_Score || '--'}</td>
         <td><span class="tag ${sigValid ? 'tag-green' : 'tag-red'}">${sigValid ? 'TRUE' : 'FALSE'}</span></td>
-        <td><span class="tag ${falsified ? 'tag-red' : 'tag-green'}">${falsified ? 'TRUE (FALSIFIED)' : 'FALSE'}</span></td>
+        <td><span class="tag ${falsified ? 'tag-red' : 'tag-green'}">${falsified ? 'TRUE' : 'FALSE'}</span></td>
         <td>${r.PRALAYA_Alteration_Type || 'none'}</td>
         <td>${r.Evidence_Fragment_Count || 0}</td>
       </tr>
@@ -395,42 +336,44 @@ function renderTable() {
 document.getElementById('search-input').oninput = renderTable;
 document.getElementById('sector-filter').onchange = renderTable;
 
-document.getElementById('btn-reset-candidates').onclick = () => {
-  activeSelected = new Set(INTENDED_12);
-  renderChips();
-};
-
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Canonical one-way commitment for CTF 1
+const EXPECTED_DIGEST = 'f2ac9d48b87eb075459936031aad374b2d59230a418e24ad6846390d172877f9';
+
 document.getElementById('btn-attest').onclick = async () => {
-  const sorted = Array.from(activeSelected).sort();
+  const raw = document.getElementById('attest-input').value;
   const status = document.getElementById('attest-status');
   const box = document.getElementById('flag-box');
 
-  if (activeSelected.has('S021')) {
-    status.innerHTML = '<span style="color:var(--red);">❌ ATTESTATION REJECTED: S021 carries Falsified_To_Protect_Flag=True! Deselect S021 to satisfy the directive.</span>';
-    box.classList.remove('show');
-    return;
-  }
-  
-  if (sorted.length !== 12 || !INTENDED_12.every(id => activeSelected.has(id))) {
-    status.innerHTML = '<span style="color:var(--yellow);">⚠️ INCOMPLETE SET: The 12 authentic records must be attested. Check the list.</span>';
+  const ids = raw.split(/[\s,;]+/).map(s => s.trim().toUpperCase()).filter(Boolean);
+  const sorted = [...new Set(ids)].sort();
+
+  if (sorted.length === 0) {
+    status.innerHTML = '<span style="color:var(--yellow);">⚠️ Please enter your identified sanctuary IDs.</span>';
     box.classList.remove('show');
     return;
   }
 
-  // Authoritative derivation
+  // Derive candidate flag using challenge specification formula
   const salt = 'pralaya::adjudication::r7';
   const material = `RZ1::FRAGMENT1::${sorted.join(',')}::${salt}`;
   const digest = await sha256(material);
-  const flag = `RZ{${digest.slice(0, 40)}}`;
+  const candidateFlag = `RZ{${digest.slice(0, 40)}}`;
 
-  document.getElementById('flag-text').innerText = flag;
-  box.classList.add('show');
-  status.innerHTML = '<span style="color:var(--green);">✅ 12 OF 12 AUTHENTIC RECORDS ATTESTED. FRAGMENT 1 RECOVERED.</span>';
+  // Verify candidate flag against one-way canonical hash
+  const checkHash = await sha256(candidateFlag);
+  if (checkHash === EXPECTED_DIGEST) {
+    document.getElementById('flag-text').innerText = candidateFlag;
+    box.classList.add('show');
+    status.innerHTML = '<span style="color:var(--green);">✅ ATTESTATION ACCEPTED. FRAGMENT 01 DERIVED.</span>';
+  } else {
+    box.classList.remove('show');
+    status.innerHTML = '<span style="color:var(--red);">❌ ATTESTATION REJECTED: Candidate records do not satisfy the recovery directive. Verify each record.</span>';
+  }
 };
 
 document.getElementById('btn-copy-flag').onclick = () => {

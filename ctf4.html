@@ -43,7 +43,7 @@
     backdrop-filter: blur(12px);
   }
   .brand { display: flex; align-items: center; gap: 12px; }
-  .badge { background: rgba(255, 42, 95, 0.15); color: var(--red); border: 1px solid var(--red); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
+  .badge { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1px; }
   .brand-title { font-weight: 900; letter-spacing: 1.5px; font-size: 16px; color: #fff; }
   .nav-actions { display: flex; gap: 12px; align-items: center; }
   .btn {
@@ -62,7 +62,9 @@
     gap: 8px;
     transition: all 0.2s;
   }
-  .btn:hover { border-color: var(--cyan); color: #fff; background: rgba(0, 229, 255, 0.1); }
+  .btn:hover { border-color: var(--yellow); color: #fff; background: rgba(255, 214, 0, 0.1); }
+  .btn-yellow { background: var(--yellow); color: #020617; border-color: var(--yellow); font-weight: 800; }
+  .btn-yellow:hover { background: #ffe033; box-shadow: 0 0 16px rgba(255, 214, 0, 0.4); }
   .btn-green { background: var(--green); color: #020617; border-color: var(--green); font-weight: 800; }
   .btn-green:hover { background: #4ade80; box-shadow: 0 0 16px rgba(0, 230, 118, 0.4); }
 
@@ -100,6 +102,7 @@
   }
   .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
   .tag-yellow { background: rgba(255, 214, 0, 0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+  .tag-green { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid var(--green); }
 
   .stage-box {
     background: #090e1a;
@@ -108,7 +111,30 @@
     padding: 14px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .input {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+  }
+  .input:focus { border-color: var(--yellow); }
+
+  .attestation-box {
+    background: #090e1a;
+    border: 1px dashed var(--yellow);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 
   .flag-box {
@@ -124,7 +150,7 @@
   .flag-box.show { display: flex; }
   .flag-display {
     font-family: var(--font);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 900;
     color: var(--green);
     letter-spacing: 1px;
@@ -154,35 +180,34 @@
     <div class="panel">
       <div class="panel-title">
         <span>FACILITY ORDERS // CENTRAL ATRIUM</span>
-        <span class="tag tag-yellow">BONUS PROTOCOL</span>
+        <span class="tag tag-yellow">OPTIONAL BONUS</span>
       </div>
 
       <div class="quote-box">
         <strong>Engine Telemetry:</strong><br>
         <em>"The Central Atrium suffered a cascade failure during the Blackout Protocol. Critical resources (Coolant, Bus, Maglock, Fuel, Token) are pinned in circular wait states."</em>
         <br><br>
-        <strong>Notice:</strong> This challenge is an <b>OPTIONAL BONUS</b>. It does not gate CTF 05 or the Final Exit.
+        <strong>Notice:</strong> This challenge is an <b>OPTIONAL BONUS</b>. It grants extra bonus completion standing without gating CTF 05 or the Final Exit.
       </div>
 
       <div class="stage-box">
-        <b style="color: var(--cyan);">STAGE 1 — RESOURCE-ALLOCATION GRAPH:</b>
+        <b style="color: var(--cyan);">STAGE 1 — GHOST IN THE RESOURCE GRAPH:</b>
         <p style="font-size: 12px; color: #94a3b8;">
-          Cycle detected: Process P2 holds R3 (Maglock) and requests R4 (Fuel), while Process P4 holds R4 and requests R3.
-          Preemption target: <code>P2</code> or <code>P4</code> breaks the circular wait and drains the system.
+          Inspect facility capacities and holdings. Separate the true circular wait from non-blocking cycles. Determine the minimal preemption or injection target that drains the deadlock.
         </p>
       </div>
 
       <div class="stage-box">
-        <b style="color: var(--cyan);">STAGE 2 — BANKER'S SAFETY SCHEDULER:</b>
+        <b style="color: var(--cyan);">STAGE 2 — THE UNSAFE SCHEDULER:</b>
         <p style="font-size: 12px; color: #94a3b8;">
-          Max-claim validation with eviction of stale cache entries to guarantee deadlock-free execution.
+          Examine the Banker's Table claim matrix. Verify maximum claims, decide whether to evict stale custodial holds, and discover an execution order that prevents starvation.
         </p>
       </div>
 
       <div class="stage-box">
-        <b style="color: var(--cyan);">STAGE 3 & 4 — CONSTRAINED ROUTING & SYNTHESIS:</b>
+        <b style="color: var(--cyan);">STAGE 3 & 4 — THE MOVING NETWORK & BLACKOUT QUIESCE:</b>
         <p style="font-size: 12px; color: #94a3b8;">
-          Quiescing the network nodes into safe quiescent state.
+          Probe damaged links from INGRESS to CORE passing through SEC-GATE within bandwidth floor and fuel limits. Compose the full recovery plan to seal the engine.
         </p>
       </div>
     </div>
@@ -191,39 +216,67 @@
     <div class="panel">
       <div class="panel-title">
         <span>BLACKOUT PROTOCOL CONSOLE</span>
-        <span class="tag tag-yellow">READY</span>
+        <span class="tag tag-green">LIVE ADJUDICATION</span>
       </div>
 
       <p style="font-size: 13px; color: var(--text-dim);">
-        Execute the protocol quiesce sequence to release the deadlock and retrieve the bonus flag:
+        Submit your verified Blackout Protocol token or recovered flag to seal the Central Atrium:
       </p>
 
-      <div style="background: #030712; border: 1px dashed var(--yellow); padding: 14px; border-radius: 8px;">
-        <span style="font-size: 12px; color: var(--yellow); font-weight: 700;">COMMAND SEQUENCE:</span>
-        <pre style="margin-top: 6px; font-size: 12px; color: var(--cyan); line-height: 1.8;">&gt; ANALYZE ALLOCATION GRAPH... DEADLOCK DETECTED {P2, P4}
-&gt; PREEMPT TARGET: P2 (MAGLOCK RELEASED)
-&gt; VERIFY BANKER'S SAFETY: GRANTED
-&gt; APPLY BLACKOUT QUIESCE ROUTE...</pre>
+      <div class="attestation-box">
+        <div>
+          <label for="quiesce-token" style="font-size: 12px; color: var(--yellow); font-weight: 700; display: block; margin-bottom: 4px;">
+            RECOVERY TOKEN OR BONUS FLAG:
+          </label>
+          <input type="text" id="quiesce-token" class="input" placeholder="e.g. RZ{...}">
+        </div>
       </div>
 
-      <button class="btn btn-green" id="btn-quiesce" style="width: 100%;">⚡ EXECUTE BLACKOUT PROTOCOL QUIESCE</button>
+      <button class="btn btn-green" id="btn-submit">⚡ VERIFY & SEAL BLACKOUT PROTOCOL</button>
 
       <!-- FLAG REWARD BOX -->
       <div class="flag-box" id="flag-box">
-        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 BLACKOUT PROTOCOL QUIESCED // BONUS FLAG:</span>
-        <div class="flag-display" id="flag-text">RZ{blackout_protocol_quiesce}</div>
+        <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 BLACKOUT PROTOCOL SEALED // BONUS CONFIRMED:</span>
+        <div class="flag-display" id="flag-text"></div>
         <div style="display: flex; gap: 12px;">
           <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY BONUS FLAG</button>
-          <a href="/" class="btn">RETURN TO RED ZONE →</a>
+          <a href="/" class="btn" style="border-color: var(--yellow);">RETURN TO GAME TERMINAL →</a>
         </div>
       </div>
+      <div id="status-out" style="font-size: 12px; min-height: 20px;"></div>
     </div>
   </div>
 </main>
 
 <script>
-document.getElementById('btn-quiesce').onclick = () => {
-  document.getElementById('flag-box').classList.add('show');
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Canonical one-way SHA-256 commitment for CTF 4
+const EXPECTED_DIGEST = '1b32adef4a406facb53c501f9d4753a7d01e9d908367df8bba833ef7d5c54897';
+
+document.getElementById('btn-submit').onclick = async () => {
+  const raw = document.getElementById('quiesce-token').value.trim();
+  const status = document.getElementById('status-out');
+  const box = document.getElementById('flag-box');
+
+  if (!raw) {
+    status.innerHTML = '<span style="color:var(--yellow);">⚠️ Please enter your recovery token or bonus flag.</span>';
+    box.classList.remove('show');
+    return;
+  }
+
+  const checkHash = await sha256(raw);
+  if (checkHash === EXPECTED_DIGEST) {
+    document.getElementById('flag-text').innerText = raw;
+    box.classList.add('show');
+    status.innerHTML = '<span style="color:var(--green);">✅ BLACKOUT PROTOCOL QUIESCED. BONUS SEAL ATTESTED.</span>';
+  } else {
+    box.classList.remove('show');
+    status.innerHTML = '<span style="color:var(--red);">❌ ACCESS DENIED: Token does not satisfy the Blackout Protocol quiesce constraints.</span>';
+  }
 };
 
 document.getElementById('btn-copy-flag').onclick = () => {

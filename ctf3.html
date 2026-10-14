@@ -115,6 +115,29 @@
   }
   .rule-head { display: flex; justify-content: space-between; font-weight: 700; font-size: 12px; }
 
+  .input {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+  }
+  .input:focus { border-color: var(--green); }
+
+  .attestation-box {
+    background: #090e1a;
+    border: 1px dashed var(--green);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
   .flag-box {
     background: #020617;
     border: 1px solid var(--green);
@@ -128,7 +151,7 @@
   .flag-box.show { display: flex; }
   .flag-display {
     font-family: var(--font);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 900;
     color: var(--green);
     letter-spacing: 1px;
@@ -139,23 +162,11 @@
     user-select: all;
   }
 
-  .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  .tab-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    font-family: inherit;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .tab-btn.active { background: var(--bg-card); color: var(--green); }
-
-  .table-wrap { overflow-x: auto; max-height: 440px; border: 1px solid var(--border); border-radius: 8px; }
+  .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .table-wrap { overflow-x: auto; max-height: 480px; border: 1px solid var(--border); border-radius: 8px; }
   table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
   th { background: #111827; padding: 10px 12px; color: var(--text-dim); position: sticky; top: 0; border-bottom: 1px solid var(--border); font-weight: 700; }
-  td { padding: 8px 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+  td { padding: 9px 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
   tr:hover td { background: rgba(0, 230, 118, 0.05); }
 </style>
 </head>
@@ -196,18 +207,16 @@
           <p style="font-size: 12px; color: #94a3b8;">
             Sanctuary records whose <code>Record_Authenticity_Score &lt; 0.500</code>.
           </p>
-          <div id="rule-iii-ids" style="font-size: 11px; color: #cbd5e1; word-break: break-all;">Computing...</div>
         </div>
 
         <div class="rule-card">
           <div class="rule-head">
             <span style="color: var(--yellow);">RULE IV — CHRONOLOGY (STATUTORY BREACH)</span>
-            <span class="tag tag-yellow">&gt; 7.5 DAYS</span>
+            <span class="tag tag-yellow">&gt; 7.3 DAYS</span>
           </div>
           <p style="font-size: 12px; color: #94a3b8;">
-            Audit entry written strictly later than the 7 day + 12h statutory grace window after transfer date (<code>Audit_Timestamp - Transfer_Date &gt; 7.5 days</code>).
+            Audit entry written strictly later than the statutory grace window after transfer date (<code>Access_Log_Timestamp - Transfer_Date &gt; 7.3 days</code>).
           </p>
-          <div id="rule-iv-ids" style="font-size: 11px; color: #cbd5e1; word-break: break-all;">Computing...</div>
         </div>
 
         <div class="rule-card">
@@ -216,54 +225,102 @@
             <span class="tag tag-yellow">&gt;= 2 BLANKS + ALTERED</span>
           </div>
           <p style="font-size: 12px; color: #94a3b8;">
-            Child profile carries &gt;= 2 blank skill cells AND the parent record admits alteration (<code>Record_Alteration_Flag == True</code>).
+            Child profile carries &gt;= 2 blank skill score cells AND the parent record admits alteration (<code>Record_Alteration_Flag == True</code>).
           </p>
-          <div id="rule-v-ids" style="font-size: 11px; color: #cbd5e1; word-break: break-all;">Computing...</div>
         </div>
       </div>
 
-      <button class="btn btn-green" id="btn-assemble" style="width: 100%;">⚡ ASSEMBLE FORENSIC DIGEST & DERIVE FLAG</button>
+      <div style="background: #030712; border: 1px dashed var(--green); padding: 12px; border-radius: 8px;">
+        <span style="color: var(--green); font-weight: 700;">RECONSTRUCTION DIGEST FORMAT:</span>
+        <pre style="margin-top: 6px; font-size: 12px; color: var(--cyan);">MATERIAL = "&lt;rule_iii_ids_asc&gt;|&lt;rule_iv_ids_asc&gt;|&lt;rule_v_ids_asc&gt;"
+FLAG     = "RZ{" + sha256(MATERIAL)[0..31] + "}"</pre>
+      </div>
+    </div>
+
+    <!-- ATTESTATION CONSOLE -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>METADATA FORENSICS ATTESTATION CONSOLE</span>
+        <span class="tag tag-green">LIVE VERIFICATION</span>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-dim);">
+        Input your derived sanctuary IDs satisfying each of the three breach rules:
+      </p>
+
+      <div class="attestation-box">
+        <div>
+          <label for="attest-r3" style="font-size: 12px; color: var(--cyan); font-weight: 700; display: block; margin-bottom: 4px;">
+            1. RULE III IDS (Authenticity Score &lt; 0.500, comma-separated):
+          </label>
+          <input type="text" id="attest-r3" class="input" placeholder="e.g. S..., S...">
+        </div>
+
+        <div>
+          <label for="attest-r4" style="font-size: 12px; color: var(--yellow); font-weight: 700; display: block; margin-bottom: 4px;">
+            2. RULE IV IDS (Audit Window Breach &gt; 7.3 days, comma-separated):
+          </label>
+          <input type="text" id="attest-r4" class="input" placeholder="e.g. S..., S...">
+        </div>
+
+        <div>
+          <label for="attest-r5" style="font-size: 12px; color: var(--green); font-weight: 700; display: block; margin-bottom: 4px;">
+            3. RULE V IDS (&gt;= 2 Blanks in Child + Parent Altered == True, comma-separated):
+          </label>
+          <input type="text" id="attest-r5" class="input" placeholder="e.g. S..., S...">
+        </div>
+      </div>
+
+      <button class="btn btn-green" id="btn-attest">⚡ SUBMIT FORENSIC ATTESTATION & DERIVE FRAGMENT 03</button>
 
       <!-- FLAG REWARD BOX -->
       <div class="flag-box" id="flag-box">
         <span style="font-size: 12px; color: var(--green); font-weight: 800;">🏆 THREE RULES ASSEMBLED // FRAGMENT 03 DERIVED:</span>
-        <div class="flag-display" id="flag-text">RZ{...}</div>
+        <div class="flag-display" id="flag-text"></div>
         <div style="display: flex; gap: 12px;">
           <button class="btn btn-green" id="btn-copy-flag" style="flex: 1;">📋 COPY FLAG TO CLIPBOARD</button>
           <a href="/" class="btn" style="border-color: var(--green);">RETURN TO GAME TERMINAL →</a>
         </div>
       </div>
+      <div id="attest-status" style="font-size: 12px; min-height: 20px;"></div>
+    </div>
+  </div>
+
+  <!-- FORENSIC EVIDENCE WORKBENCH -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>FORENSIC EVIDENCE WORKBENCH // ARCHIVE RECORDS</span>
+      <div class="filter-bar">
+        <input type="text" class="input" id="search-input" placeholder="Search ID or Name..." style="width: 220px;">
+        <select class="input" id="sector-filter" style="width: 180px;">
+          <option value="">All Sectors</option>
+          <option value="Civic">Civic</option>
+          <option value="Medical">Medical</option>
+          <option value="Research">Research</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Industrial">Industrial</option>
+          <option value="Communications">Communications</option>
+        </select>
+      </div>
     </div>
 
-    <!-- FORENSIC INSPECTOR TABLE -->
-    <div class="panel">
-      <div class="panel-title">
-        <span>FORENSIC EVIDENCE WORKBENCH</span>
-        <div class="tabs">
-          <button class="tab-btn active" id="tab-all" onclick="setTab('all')">All Records</button>
-          <button class="tab-btn" id="tab-iii" onclick="setTab('iii')">Rule III (9)</button>
-          <button class="tab-btn" id="tab-iv" onclick="setTab('iv')">Rule IV (7)</button>
-          <button class="tab-btn" id="tab-v" onclick="setTab('v')">Rule V (10)</button>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>NAME</th>
-              <th>AUTH SCORE</th>
-              <th>AUDIT GAP (DAYS)</th>
-              <th>CHILD BLANKS</th>
-              <th>ALTERED</th>
-            </tr>
-          </thead>
-          <tbody id="workbench-body">
-            <!-- Injected by JS -->
-          </tbody>
-        </table>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>NAME</th>
+            <th>SECTOR</th>
+            <th>TRANSFER DATE</th>
+            <th>ACCESS LOG TIMESTAMP</th>
+            <th>AUTH SCORE</th>
+            <th>ALTERED</th>
+          </tr>
+        </thead>
+        <tbody id="workbench-body">
+          <tr><td colspan="7" style="text-align:center; color:var(--text-dim); padding:20px;">Loading archive records...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </main>
@@ -271,8 +328,6 @@
 <script>
 let parentData = [];
 let childData = [];
-let derivedData = [];
-let activeTab = 'all';
 
 async function loadData() {
   try {
@@ -287,114 +342,82 @@ async function loadData() {
   } catch (e) {
     console.warn('Dataset load failed:', e);
   }
-  computeForensics();
-}
-
-function computeForensics() {
-  const childMap = new Map();
-  childData.forEach(c => childMap.set(String(c.Sanctuary_ID).trim(), c));
-
-  const skillKeys = ['Primary_Competency_Code', 'Secondary_Competency_Code', 'Skill_Tier_Level', 'Specialization_Track', 'Aptitude_Index_Score'];
-
-  derivedData = parentData.map(p => {
-    const id = String(p.Sanctuary_ID).trim();
-    const auth = Number(p.Record_Authenticity_Score) || 0;
-    const altered = String(p.Record_Alteration_Flag).toLowerCase() === 'true';
-
-    // Transfer Date & Audit Timestamp gap
-    let gapDays = 0;
-    try {
-      const tDate = new Date(p.Transfer_Date);
-      const aDate = new Date(p.Audit_Timestamp);
-      if (!isNaN(tDate) && !isNaN(aDate)) {
-        gapDays = (aDate - tDate) / (1000 * 60 * 60 * 24);
-      }
-    } catch (_) {}
-
-    // Child blanks count
-    const child = childMap.get(id);
-    let childBlanks = 0;
-    if (child) {
-      skillKeys.forEach(k => {
-        const val = child[k];
-        if (val === undefined || val === null || String(val).trim() === '') childBlanks++;
-      });
-    }
-
-    const ruleIII = auth < 0.500;
-    const ruleIV = gapDays > 7.5;
-    const ruleV = childBlanks >= 2 && altered;
-
-    return {
-      id,
-      name: p.Original_Name,
-      auth,
-      gapDays: Math.round(gapDays * 10) / 10,
-      childBlanks,
-      altered,
-      ruleIII,
-      ruleIV,
-      ruleV
-    };
-  });
-
-  const r3 = derivedData.filter(d => d.ruleIII).map(d => d.id).sort();
-  const r4 = derivedData.filter(d => d.ruleIV).map(d => d.id).sort();
-  const r5 = derivedData.filter(d => d.ruleV).map(d => d.id).sort();
-
-  document.getElementById('rule-iii-ids').innerText = r3.join(', ');
-  document.getElementById('rule-iv-ids').innerText = r4.join(', ');
-  document.getElementById('rule-v-ids').innerText = r5.join(', ');
-
-  document.getElementById('tab-iii').innerText = `Rule III (${r3.length})`;
-  document.getElementById('tab-iv').innerText = `Rule IV (${r4.length})`;
-  document.getElementById('tab-v').innerText = `Rule V (${r5.length})`;
-
-  renderTable();
-}
-
-function setTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
   renderTable();
 }
 
 function renderTable() {
   const tbody = document.getElementById('workbench-body');
-  let list = derivedData;
-  if (activeTab === 'iii') list = derivedData.filter(d => d.ruleIII);
-  else if (activeTab === 'iv') list = derivedData.filter(d => d.ruleIV);
-  else if (activeTab === 'v') list = derivedData.filter(d => d.ruleV);
+  const search = (document.getElementById('search-input').value || '').trim().toLowerCase();
+  const sector = document.getElementById('sector-filter').value;
 
-  tbody.innerHTML = list.map(d => `
+  const filtered = parentData.filter(r => {
+    const id = (r.Sanctuary_ID || '').toLowerCase();
+    const name = (r.Original_Name || '').toLowerCase();
+    const sec = r.Original_Sector_Of_Residence || '';
+    if (search && !id.includes(search) && !name.includes(search)) return false;
+    if (sector && sec !== sector) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-dim); padding:20px;">No matching records found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => `
     <tr>
-      <td><b>${d.id}</b></td>
-      <td>${d.name || '--'}</td>
-      <td style="color:${d.ruleIII ? 'var(--cyan)' : 'inherit'}">${d.auth}</td>
-      <td style="color:${d.ruleIV ? 'var(--yellow)' : 'inherit'}">${d.gapDays} d</td>
-      <td style="color:${d.childBlanks >= 2 ? 'var(--green)' : 'inherit'}">${d.childBlanks}</td>
-      <td>${d.altered ? '<span class="tag tag-yellow">TRUE</span>' : 'FALSE'}</td>
+      <td><b>${r.Sanctuary_ID}</b></td>
+      <td>${r.Original_Name || '--'}</td>
+      <td>${r.Original_Sector_Of_Residence || '--'}</td>
+      <td>${r.Transfer_Date || '--'}</td>
+      <td>${r.Access_Log_Timestamp || r.Audit_Timestamp || '--'}</td>
+      <td>${r.Record_Authenticity_Score || '--'}</td>
+      <td>${String(r.Record_Alteration_Flag).toLowerCase() === 'true' ? '<span class="tag tag-yellow">TRUE</span>' : 'FALSE'}</td>
     </tr>
   `).join('');
 }
+
+document.getElementById('search-input').oninput = renderTable;
+document.getElementById('sector-filter').onchange = renderTable;
 
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-document.getElementById('btn-assemble').onclick = async () => {
-  const r3 = derivedData.filter(d => d.ruleIII).map(d => d.id).sort();
-  const r4 = derivedData.filter(d => d.ruleIV).map(d => d.id).sort();
-  const r5 = derivedData.filter(d => d.ruleV).map(d => d.id).sort();
+// Canonical one-way SHA-256 commitment for CTF 3
+const EXPECTED_DIGEST = '3b1d133a0979e041f30dfc122885ae588861d90144cadb775b91af618000a78e';
+
+document.getElementById('btn-attest').onclick = async () => {
+  const rawR3 = document.getElementById('attest-r3').value;
+  const rawR4 = document.getElementById('attest-r4').value;
+  const rawR5 = document.getElementById('attest-r5').value;
+  const status = document.getElementById('attest-status');
+  const box = document.getElementById('flag-box');
+
+  const r3 = [...new Set(rawR3.split(/[\s,;]+/).map(s => s.trim().toUpperCase()).filter(Boolean))].sort();
+  const r4 = [...new Set(rawR4.split(/[\s,;]+/).map(s => s.trim().toUpperCase()).filter(Boolean))].sort();
+  const r5 = [...new Set(rawR5.split(/[\s,;]+/).map(s => s.trim().toUpperCase()).filter(Boolean))].sort();
+
+  if (r3.length === 0 || r4.length === 0 || r5.length === 0) {
+    status.innerHTML = '<span style="color:var(--yellow);">⚠️ Please provide verified sanctuary IDs for Rule III, Rule IV, and Rule V.</span>';
+    box.classList.remove('show');
+    return;
+  }
 
   const material = `${r3.join(',')}|${r4.join(',')}|${r5.join(',')}`;
   const digest = await sha256(material);
-  const flag = 'RZ{' + digest.slice(0, 32) + '}';
+  const candidateFlag = `RZ{${digest.slice(0, 32)}}`;
 
-  document.getElementById('flag-text').innerText = flag;
-  document.getElementById('flag-box').classList.add('show');
+  const checkHash = await sha256(candidateFlag);
+  if (checkHash === EXPECTED_DIGEST) {
+    document.getElementById('flag-text').innerText = candidateFlag;
+    box.classList.add('show');
+    status.innerHTML = '<span style="color:var(--green);">✅ ATTESTATION ACCEPTED. FRAGMENT 03 DERIVED.</span>';
+  } else {
+    box.classList.remove('show');
+    status.innerHTML = '<span style="color:var(--red);">❌ ATTESTATION REJECTED: Candidate records do not satisfy all three breach rules. Re-verify your forensic analysis.</span>';
+  }
 };
 
 document.getElementById('btn-copy-flag').onclick = () => {
